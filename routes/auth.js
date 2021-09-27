@@ -7,48 +7,44 @@ const User = require('../models/user');
 const router = express.Router();
 
 router.post('/post', isNotLoggedIn, async (req, res, next) => {
-    const {email, nickname, password } = req.body;
+    const { email, nickname, password } = req.body;
     try {
-        const exUser = await User.findOne({ where: { email }});
-        if(exUser) {
+        const exUser = await User.findOne({ where: { email } });
+        if (exUser) {
             return res.redirect('/join?error=exist');
         }
         const salt = await encryption.createSalt();
         const hash = await encryption.createHash(password, salt);
         await User.create({
-            email, 
+            email,
             nickname,
             password: hash,
-            salt
+            salt,
         });
-
-    }
-    catch(error) {
+    } catch (error) {
         console.log(error);
         return next(error);
     }
 });
 
-
 router.post('/login', isNotLoggedIn, (req, res, next) => {
     passport.authenticate('local', (authError, user, info) => {
-        if(authError) {
+        if (authError) {
             console.error(authError);
             return next(authError);
         }
-        if(!user) {
+        if (!user) {
             return res.redirect(`/?loginError=${info.message}`);
         }
         return req.login(user, (loginError) => {
-            if(loginError) {
+            if (loginError) {
                 console.error(loginError);
                 return next(loginError);
             }
             return res.redirect('/');
-        })
+        });
     })(req, res, next);
 });
-
 
 router.get('/logout', isLoggedIn, (req, res) => {
     req.logout();

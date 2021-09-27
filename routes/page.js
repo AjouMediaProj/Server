@@ -9,11 +9,11 @@ router.use((req, res, next) => {
 });
 
 router.get('/profile', isLoggedIn, (req, res) => {
-    res.render('profile', { title: '내 정보'});
+    res.render('profile', { title: '내 정보' });
 });
 
 router.get('/join', isNotLoggedIn, (req, res) => {
-    res.render('join', { title: '회원가입'});
+    res.render('join', { title: '회원가입' });
 });
 
 module.exports = router;

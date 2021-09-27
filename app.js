@@ -5,8 +5,6 @@
  * Description: entryption.js can be used to encrypt user's password or auth code.. etc
  */
 
-
-
 /*const utils = require('./utils/utils');
 const mailer = require('./utils/mailer');
 
@@ -28,7 +26,6 @@ for(let i = 0; i < 10000000; i++) {
 const t4 = new Date().getTime() - t3;
 console.log(`${t4 * 0.001} sec`);*/
 
-
 /* Modules */
 const http = require('http');
 const https = require('https');
@@ -42,7 +39,6 @@ const passport = require('passport');
 const nunjucks = require('nunjucks');
 const mailer = require('./utils/mailer');
 
-
 dotenv.config();
 const app = express();
 const pageRouter = require('./routes/page');
@@ -55,48 +51,49 @@ app.set('port', process.env.PORT || 8080);
 app.set('view engine', 'html');
 nunjucks.configure('view', {
     express: app,
-    watch: true
+    watch: true,
 });
-
 
 nunjucks.configure('views', {
     express: app,
-    watch: true
+    watch: true,
 });
-sequelize.sync({ force: false })
-.then(() => {
-    console.log('successfully connect to db');
-})
-.catch((err) => {
-    console.error(err);
-});
-
+sequelize
+    .sync({ force: false })
+    .then(() => {
+        console.log('successfully connect to db');
+    })
+    .catch((err) => {
+        console.error(err);
+    });
 
 app.use(morgan('dev'));
 app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(express.json());
-app.use(express.urlencoded({ extended : false }));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
-app.use(session({
-    resave: false,
-    saveUninitialized: false,
-    secret: process.env.COOKIE_SECRET,
-    cookie: {
-        httpOnly: true,
-        secure: false
-    },
-    name: 'session-cookie'
-}));
+app.use(
+    session({
+        resave: false,
+        saveUninitialized: false,
+        secret: process.env.COOKIE_SECRET,
+        cookie: {
+            httpOnly: true,
+            secure: false,
+        },
+        name: 'session-cookie',
+    }),
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/', pageRouter);
 app.use('/auth', authRouter);
-app.use((req,res, next) => {
+app.use((req, res, next) => {
     const error = new Error(`There is no router: ${req.method} ${req.url}`);
     error.status = 404;
     next(error);
-})
+});
 
 app.use((err, req, res, next) => {
     res.locals.message = err.message;
