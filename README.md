@@ -1,0 +1,2 @@
+# Server
+Blote service server
