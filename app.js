@@ -107,5 +107,5 @@ app.use((err, req, res, next) => {
 
 app.listen(app.get('port'), () => {
     console.log('listening at ', app.get('port'));
-    console.log('test2');
+    console.log('test');
 });
