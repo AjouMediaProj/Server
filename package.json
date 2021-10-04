@@ -1,0 +1,38 @@
+{
+    "name": "voteserver",
+    "version": "1.0.0",
+    "description": "block chain vote system server",
+    "main": "index.js",
+    "author": "Lee Hong Jun",
+    "license": "ISC",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "bcrypt": "^5.0.1",
+        "chokidar": "^3.5.2",
+        "cookie-parser": "^1.4.5",
+        "cors": "^2.8.5",
+        "crypto": "^1.0.1",
+        "dotenv": "^10.0.0",
+        "ejs": "^3.1.6",
+        "express": "^4.17.1",
+        "express-session": "^1.17.2",
+        "helmet": "^4.6.0",
+        "hpp": "^0.2.3",
+        "moment": "^2.29.1",
+        "morgan": "^1.10.0",
+        "multer": "^1.4.3",
+        "mysql2": "^2.3.0",
+        "nodemailer": "^6.6.5",
+        "nunjucks": "^3.2.3",
+        "passport": "^0.5.0",
+        "passport-local": "^1.0.0",
+        "path": "^0.12.7",
+        "sequelize": "^6.6.5",
+        "sequelize-cli": "^6.2.0",
+        "util": "^0.12.4",
+        "winston": "^3.3.3",
+        "winston-daily-rotate-file": "^4.5.5"
+    }
+}

@@ -8,6 +8,10 @@ router.use((req, res, next) => {
     next();
 });
 
+router.get('/', (req, res, next) => {
+    res.send('Hello Express');
+});
+
 router.get('/profile', isLoggedIn, (req, res) => {
     res.render('profile', { title: '내 정보' });
 });

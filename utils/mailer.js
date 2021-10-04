@@ -1,6 +1,6 @@
 /**
  * mailer.js
- * Last modified: 2021.09.23
+ * Last modified: 2021.10.04
  * Author: Lee Hong Jun
  * Description: mailer.js can be used to send e-mail to users.
  */
@@ -10,12 +10,10 @@ const moment = require('moment');
 const ejs = require('ejs');
 const nodeMailer = require('nodemailer');
 const path = require('path');
-const dotenv = require('dotenv');
 const utility = require('./utility');
 
-/* Files */
-const mailerConfig = require('./mailerConfig.json');
-dotenv.config();
+/* config */
+const config = require('../config/config');
 
 /**
  * @class Mailer
@@ -24,19 +22,10 @@ dotenv.config();
 class Mailer {
     /**
      * @function constructor
-     * @description constructor of PromiseManager class
+     * @description constructor of Mailer class (Initialize nodemailer's transporter - read config file)
      */
     constructor() {
-        this.transporter = nodeMailer.createTransport({
-            service: mailerConfig.mailInfo.service,
-            host: mailerConfig.mailInfo.host,
-            port: mailerConfig.mailInfo.port,
-            secure: mailerConfig.mailInfo.secure,
-            auth: {
-                user: process.env.MAILER_ID,
-                pass: process.env.MAILER_PW,
-            },
-        });
+        this.transporter = nodeMailer.createTransport(config.mailer);
     }
 
     /**
@@ -49,7 +38,7 @@ class Mailer {
      */
     async sendMail(dest, subject, html) {
         const mailOps = {
-            from: process.env.MAILER_ID,
+            from: config.mailer.auth.user,
             to: dest,
             subject,
             html,
@@ -76,8 +65,7 @@ class Mailer {
 
         try {
             const data = { authCode: code, email: dest, expirationTime };
-            console.log(__dirname);
-            const mail = await ejs.renderFile(path.join(__dirname, '/auth.ejs'), data);
+            const mail = await ejs.renderFile(path.join(__dirname, '/authMail.ejs'), data);
             this.sendMail(dest, 'Block chain vote service authentication code', mail);
         } catch (error) {
             console.error(error);

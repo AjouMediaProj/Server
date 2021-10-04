@@ -2,7 +2,7 @@
  * utils.js
  * Last modified: 2021.09.23
  * Author: Lee Hong Jun (Onggae22, hong3883@naver.com)
- * Description: utils.js has many utility functions.
+ * Description: utility.js has many utility functions.
  */
 
 /* Modules */
