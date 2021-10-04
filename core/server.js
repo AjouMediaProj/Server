@@ -5,6 +5,8 @@
  * Description: express web server
  */
 
+require('module-alias/register');
+
 /* Express Modules */
 const express = require('express');
 const session = require('express-session');

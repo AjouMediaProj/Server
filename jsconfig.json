@@ -1,0 +1,12 @@
+// configurations for vscode intellisense
+{
+    "compilerOptions": {
+        "target": "es6",
+        "baseUrl": ".",
+        "paths": {
+            "@root/*": ["./*"],
+            "@src/*": ["./src/*"]
+        }
+        // "checkJs": true,
+    }
+}
