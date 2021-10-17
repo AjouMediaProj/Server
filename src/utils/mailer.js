@@ -1,19 +1,20 @@
 /**
  * mailer.js
- * Last modified: 2021.10.04
+ * Last modified: 2021.10.15
  * Author: Lee Hong Jun
  * Description: mailer.js can be used to send e-mail to users.
  */
 
 /* Modules */
-const moment = require('moment');
 const ejs = require('ejs');
+const moment = require('moment');
 const nodeMailer = require('nodemailer');
 const path = require('path');
-const utility = require('./utility');
+const logger = require('@src/utils/logger');
+const utility = require('@src/utils/utility');
 
 /* config */
-const config = require('../config/config');
+const config = require('@root/config/config');
 
 /**
  * @class Mailer
@@ -46,10 +47,9 @@ class Mailer {
 
         try {
             const info = await this.transporter.sendMail(mailOps);
-            console.log(info.response);
             this.transporter.close();
-        } catch (error) {
-            console.error(error);
+        } catch (err) {
+            logger.error(err);
         }
     }
 
@@ -60,15 +60,15 @@ class Mailer {
      * @param {string} dest Destination for sending authentication e-mail. (ex. user's e-mail address)
      */
     async sendAuthMail(dest) {
-        const code = utility.createRandomCode(6);
-        const expirationTime = moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss');
-
         try {
+            const code = utility.createRandomCode(6);
+            const expirationTime = moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss');
             const data = { authCode: code, email: dest, expirationTime };
             const mail = await ejs.renderFile(path.join(__dirname, '/authMail.ejs'), data);
+
             this.sendMail(dest, 'Block chain vote service authentication code', mail);
-        } catch (error) {
-            console.error(error);
+        } catch (err) {
+            logger.error(err);
         }
     }
 }

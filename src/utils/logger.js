@@ -1,7 +1,7 @@
 /**
  * utils.js
- * Last modified: 2021.10.04
- * Author: Lee Hong Jun (Onggae22, hong3883@naver.com)
+ * Last modified: 2021.10.14
+ * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: logger.js is used to save server logs.
  */
 
@@ -9,6 +9,7 @@
 const moment = require('moment');
 const winston = require('winston');
 const path = require('path');
+const utility = require('@src/utils/utility');
 require('winston-daily-rotate-file');
 require('dotenv').config();
 
@@ -38,7 +39,7 @@ class Logger {
         return combine(
             timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
             printf((info) => {
-                return `${info.timestamp} [${info.level}] : ${info.message}`;
+                return `[${info.timestamp}] [${info.level}] : ${info.message}`;
             }),
         );
     }
@@ -119,7 +120,7 @@ class Logger {
         if (!this.logger) {
             this.createLogger();
         }
-        this.logger.debug(typeof msg === 'object' ? JSON.stringify(msg) : msg);
+        this.logger.debug(utility.isJsonObj(msg) ? JSON.stringify(msg) : msg);
     }
 
     /**
@@ -132,7 +133,7 @@ class Logger {
         if (!this.logger) {
             this.createLogger();
         }
-        this.logger.info(typeof msg === 'object' ? JSON.stringify(msg) : msg);
+        this.logger.info(utility.isJsonObj(msg) ? JSON.stringify(msg) : msg);
     }
 
     /**
@@ -145,7 +146,7 @@ class Logger {
         if (!this.logger) {
             this.createLogger();
         }
-        this.logger.warn(typeof msg === 'object' ? JSON.stringify(msg) : msg);
+        this.logger.warn(utility.isJsonObj(msg) ? JSON.stringify(msg) : msg);
     }
 
     /**
@@ -158,7 +159,7 @@ class Logger {
         if (!this.logger) {
             this.createLogger();
         }
-        this.logger.error(typeof msg === 'object' ? JSON.stringify(msg) : msg);
+        this.logger.error(utility.isJsonObj(msg) ? `\n- name: ${msg.name}\n- msg: ${msg.message}\n- stack: ${msg.stack}` : msg);
     }
 }
 
