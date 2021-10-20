@@ -7,6 +7,7 @@
 
 /* Modules */
 const cloneDeep = require('clone-deep');
+const rp = require('request-promise');
 const logger = require('@src/utils/logger');
 
 /**
@@ -198,6 +199,22 @@ class Utility {
             this.merge(initDataObj, cloneObj);
         }
         return cloneObj;
+    }
+
+    async requestHTTP(uri) {
+        let rtn = null;
+        try {
+            const response = await rp({
+                uri: uri,
+                method: 'POST',
+            });
+
+            rtn = response;
+        } catch (err) {
+            logger.error(err);
+        } finally {
+            return rtn;
+        }
     }
 }
 
