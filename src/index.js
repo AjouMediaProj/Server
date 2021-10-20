@@ -12,6 +12,8 @@ const HttpServer = require('@src/core/httpServer');
 const HttpsServer = require('@src/core/httpsServer');
 const ExpressServer = require('@src/core/expressServer');
 
+const contract = require('@src/blockchain/contract');
+
 const database = require('@src/database/database');
 const logger = require('@src/utils/logger');
 
@@ -36,6 +38,8 @@ async function runService() {
         expressServer.init(secure);
         httpServer.init(expressServer);
         httpServer.run();
+
+        // contract.init();
 
         if (secure) {
             httpsServer.init(expressServer);

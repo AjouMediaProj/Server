@@ -17,6 +17,7 @@
     "dependencies": {
         "aws-sdk": "^2.1002.0",
         "bcrypt": "^5.0.1",
+        "caver-js": "^1.6.4",
         "chokidar": "^3.5.2",
         "clone-deep": "^4.0.1",
         "cookie-parser": "^1.4.5",
