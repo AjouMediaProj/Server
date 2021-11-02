@@ -29,6 +29,7 @@ const pageRouter = require('@root/src/routes/pageRouter');
 const authRouter = require('@root/src/routes/authRouter');
 const uploadRouter = require('@root/src/routes/uploadRouter');
 const errorRouter = require('@src/routes/errorRouter');
+const tempRouter = require('@root/src/routes/tempRouter');
 
 /**
  * @class ExpressServer
@@ -122,6 +123,7 @@ class ExpressServer {
         this.app.use('/', pageRouter);
         this.app.use('/auth', authRouter);
         this.app.use('/upload', uploadRouter.router);
+        this.app.use('/temp', tempRouter);
         this.app.use(errorRouter);
     }
 }

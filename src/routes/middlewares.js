@@ -11,6 +11,8 @@ const passport = require('passport');
 const userManager = require('@src/database/userManager');
 const logger = require('@src/utils/logger');
 
+const contract = require('@src/blockchain/contract');
+
 /**
  * @class Middlewares
  * @description
@@ -267,6 +269,186 @@ class Middlewares {
 
         logger.error(`Response: '${res.locals.message}' [${res.statusCode}], There is no router: ${req.method}, ${req.url} `);
         res.render('error');
+    }
+
+    // Temp Router
+    async addVote(req, res) {
+        const reqKeys = {
+            voteName: 'voteName',
+            startTime: 'startTime',
+            endTime: 'endTime',
+        };
+        const resKeys = {
+            idx: 'idx',
+            voteName: 'voteName',
+            startTime: 'startTime',
+            endTime: 'endTime',
+        };
+
+        try {
+            const resData = {};
+            const body = req.query;
+            const voteName = body[reqKeys.voteName];
+            const startTime = body[reqKeys.startTime];
+            const endTime = body[reqKeys.endTime];
+
+            // @todo - Insert DB(startTransaction ~ query)
+
+            const rtn = await contract.addVote(voteName, startTime, endTime);
+
+            // @todo - Insert DB(commit or rollback ~ release)
+
+            resData[resKeys.idx] = rtn.idx;
+            resData[resKeys.voteName] = rtn.name;
+            resData[resKeys.startTime] = rtn.startTime;
+            resData[resKeys.endTime] = rtn.endTime;
+
+            logger.info(resData);
+            res.send(resData);
+        } catch (err) {
+            logger.error(err);
+            res.send(err);
+        }
+    }
+
+    async addCandidate(req, res) {
+        const reqKeys = {
+            voteIdx: 'voteIdx',
+            candName: 'candName',
+        };
+        const resKeys = {
+            idx: 'idx',
+            candName: 'candName',
+        };
+
+        try {
+            const resData = {};
+            const body = req.query;
+            const voteIdx = body[reqKeys.voteIdx];
+            const candName = body[reqKeys.candName];
+
+            // @todo - Save Image, Insert DB(startTransaction ~ query)
+
+            const rtn = await contract.addCandidate(voteIdx, candName);
+
+            // @todo - Insert DB(commit or rollback ~ release)
+
+            resData[resKeys.idx] = rtn.idx;
+            resData[resKeys.candName] = rtn.name;
+
+            logger.info(resData);
+            res.send(resData);
+        } catch (err) {
+            logger.error(err);
+            res.send(err);
+        }
+    }
+
+    async vote(req, res) {
+        const reqKeys = {
+            voteIdx: 'voteIdx',
+            candIdx: 'candIdx',
+            renounce: 'renounce',
+        };
+        const resKeys = {
+            receipt: 'receipt',
+        };
+
+        try {
+            const resData = {};
+            const body = req.query;
+            const voteIdx = Number(body[reqKeys.voteIdx]);
+            const candIdx = Number(body[reqKeys.candIdx]);
+            // const renounce = body[reqKeys.renounce];
+            const renounce = body[reqKeys.renounce] == 'true' ? true : false;
+
+            // @todo - Check user's status
+            // @todo - Update user's status, Insert DB(startTransaction ~ query)
+
+            const rtn = await contract.vote(voteIdx, candIdx, renounce);
+
+            // @todo - Insert DB(commit or rollback ~ release)
+
+            resData[resKeys.receipt] = rtn.receipt;
+
+            logger.info(resData);
+            res.send(resData);
+        } catch (err) {
+            logger.error(err);
+            res.send(err);
+        }
+    }
+
+    async getVoteOverview(req, res) {
+        const reqKeys = {
+            voteIdx: 'voteIdx',
+        };
+        const resKeys = {
+            idx: 'idx',
+            voteName: 'voteName',
+            candidates: 'candidates',
+            totalVoteCnt: 'totalVoteCnt',
+            startTime: 'startTime',
+            endTime: 'endTime',
+            status: 'status',
+        };
+
+        try {
+            const resData = {};
+            const body = req.query;
+            const voteIdx = body[reqKeys.voteIdx];
+
+            const voteData = await contract.getVote(voteIdx);
+
+            let candidates = [];
+            for (let i in voteData.candIdxes) {
+                const candData = await contract.getCandidate(voteData.candIdxes[i]);
+                candidates.push(candData);
+            }
+
+            resData[resKeys.idx] = voteData.voteIdx;
+            resData[resKeys.voteName] = voteData.voteName;
+            resData[resKeys.candidates] = candidates;
+            resData[resKeys.totalVoteCnt] = voteData.totalVoteCnt;
+            resData[resKeys.startTime] = voteData.startTime;
+            resData[resKeys.endTime] = voteData.endTime;
+            resData[resKeys.status] = voteData.status;
+
+            logger.info(resData);
+            res.send(resData);
+        } catch (err) {
+            logger.error(err);
+            res.send(err);
+        }
+    }
+
+    async decodeVoteReceipt(req, res) {
+        const reqKeys = {
+            transactionHash: 'transactionHash',
+        };
+        const resKeys = {
+            voteIdx: 'voteIdx',
+            candIdx: 'candIdx',
+            renounce: 'renounce',
+        };
+
+        try {
+            const resData = {};
+            const body = req.query;
+            const transactionHash = body[reqKeys.transactionHash];
+
+            const decodedData = await contract.decodeVoteReceipt(transactionHash);
+
+            resData[resKeys.voteIdx] = decodedData.voteIdx;
+            resData[resKeys.candIdx] = decodedData.candIdx;
+            resData[resKeys.renounce] = decodedData.renounce;
+
+            logger.info(resData);
+            res.send(resData);
+        } catch (err) {
+            logger.error(err);
+            res.send(err);
+        }
     }
 }
 
