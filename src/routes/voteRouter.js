@@ -8,7 +8,8 @@
 /* Modules */
 const express = require('express');
 const passport = require('passport');
-const VoteMiddleware = require('@src/routes/middlewares/voteMiddleware');
+const authMiddleware = require('@src/routes/middlewares/authMiddleware');
+const voteMiddleware = require('@src/routes/middlewares/voteMiddleware');
 
 /* Router */
 const router = express.Router();
@@ -17,9 +18,14 @@ const router = express.Router();
 
 /* GET */
 // '/vote/list': vote list request.
-router.get('/list', VoteMiddleware.getVoteList);
+router.get('/list', voteMiddleware.getVoteList);
 
 /* POST */
+router.post('/addVote', authMiddleware.isNotSignedIn, voteMiddleware.addVote);
+router.post('/addCandidate', authMiddleware.isNotSignedIn, voteMiddleware.addCandidate);
+router.post('/vote', authMiddleware.isNotSignedIn, voteMiddleware.vote);
+router.post('/getVoteOverview', authMiddleware.isNotSignedIn, voteMiddleware.getVoteOverview);
+router.post('/decodeVoteReceipt', authMiddleware.isNotSignedIn, voteMiddleware.decodeVoteReceipt);
 
 /* Export the router as module */
 module.exports = router;

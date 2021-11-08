@@ -30,7 +30,6 @@ const authRouter = require('@src/routes/authRouter');
 const voteRouter = require('@src/routes/voteRouter');
 const uploadRouter = require('@src/routes/uploadRouter');
 const errorRouter = require('@src/routes/errorRouter');
-const tempRouter = require('@root/src/routes/tempRouter');
 
 /**
  * @class ExpressServer
@@ -123,13 +122,8 @@ class ExpressServer {
         // routers
         this.app.use('/', pageRouter);
         this.app.use('/auth', authRouter);
-<<<<<<< HEAD
-        this.app.use('/upload', uploadRouter.router);
-        this.app.use('/temp', tempRouter);
-=======
         this.app.use('/upload', uploadRouter);
         this.app.use('/vote', voteRouter);
->>>>>>> develop
         this.app.use(errorRouter);
     }
 }

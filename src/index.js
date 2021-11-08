@@ -40,7 +40,7 @@ async function runService() {
         httpServer.init(expressServer);
         httpServer.run();
 
-        // contract.init();
+        contract.init();
 
         if (secure) {
             httpsServer.init(expressServer);
