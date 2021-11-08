@@ -28,11 +28,12 @@ const expressServer = new ExpressServer();
  * yarn http -> run http server
  * yarn https -> run https server
  */
+
 async function runService() {
     try {
         // Slice the command (argv[0] argv[1] / argv[2] ...)
         const secure = process.argv.slice(2).toString() === 'https' ? true : false;
-        await database.init();
+        await database.init(true, false);
         expressServer.init(secure);
         httpServer.init(expressServer);
         httpServer.run();

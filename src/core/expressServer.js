@@ -25,9 +25,10 @@ const path = require('path');
 const logger = require('@src/utils/logger');
 
 /* Routers */
-const pageRouter = require('@root/src/routes/pageRouter');
-const authRouter = require('@root/src/routes/authRouter');
-const uploadRouter = require('@root/src/routes/uploadRouter');
+const pageRouter = require('@src/routes/pageRouter');
+const authRouter = require('@src/routes/authRouter');
+const voteRouter = require('@src/routes/voteRouter');
+const uploadRouter = require('@src/routes/uploadRouter');
 const errorRouter = require('@src/routes/errorRouter');
 
 /**
@@ -61,7 +62,7 @@ class ExpressServer {
 
         // create express app instance
         this.app = express();
-        this.app.set('port', process.env.PORT);
+        this.app.set('port', process.env.EXPRESS_PORT);
 
         // nunjucks settings
         this.app.set('view engine', 'html');
@@ -121,7 +122,8 @@ class ExpressServer {
         // routers
         this.app.use('/', pageRouter);
         this.app.use('/auth', authRouter);
-        this.app.use('/upload', uploadRouter.router);
+        this.app.use('/upload', uploadRouter);
+        this.app.use('/vote', voteRouter);
         this.app.use(errorRouter);
     }
 }

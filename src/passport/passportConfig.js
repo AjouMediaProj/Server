@@ -9,7 +9,7 @@
 require('dotenv').config();
 const passport = require('passport');
 const strategy = require('@src/passport/strategy');
-const userManager = require('@src/database/userManager');
+const accountManager = require('@src/database/managers/accountManager');
 
 /* Utils */
 const logger = require('@src/utils/logger');
@@ -34,9 +34,9 @@ class PassportConfig {
         });
 
         // Execute every request (recall the user information object through the ID saved in the session)
-        passport.deserializeUser(async (id, done) => {
+        passport.deserializeUser(async (email, done) => {
             try {
-                const user = await userManager.findUser({ email: id });
+                const user = await accountManager.findAccountByEmail(email);
                 done(null, user);
             } catch (err) {
                 logger.error(err);
