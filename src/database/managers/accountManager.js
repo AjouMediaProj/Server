@@ -1,6 +1,6 @@
 /**
  * accountManager.js
- * Last modified: 2021.11.04
+ * Last modified: 2021.11.08
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Account model(table) manager
  */
@@ -13,13 +13,10 @@ const utility = require('@src/utils/utility');
 
 /* Base Account Object */
 let baseAccountObject = {
-    uid: null,
+    idx: null,
     email: null,
-    schoolEmail: null,
     password: null,
     salt: null,
-    snsId: null,
-    provider: null,
 };
 
 /* Sequelize 'Account' model */
