@@ -8,7 +8,7 @@
 /* Modules */
 const cloneDeep = require('clone-deep');
 const rp = require('request-promise');
-const logger = require('@src/utils/logger');
+// const logger = require('@src/utils/logger');
 
 /**
  * @class Utility
@@ -20,6 +20,14 @@ class Utility {
      * @description constructor of Utility class
      */
     constructor() {}
+
+    get loadLogger() {
+        if (this._logger == null) {
+            this._logger = require('@src/utils/logger');
+        }
+
+        return this._logger;
+    }
 
     /**
      * @function createRandomNum
@@ -71,7 +79,7 @@ class Utility {
             if (typeof jsonObj === 'object' && jsonObj !== null) return true;
             else return false;
         } catch (err) {
-            logger.error(err);
+            this.loadLogger.error(err);
             return false;
         }
     }
@@ -93,7 +101,7 @@ class Utility {
             if (typeof jsonObj === 'object' && jsonObj !== null) return true;
             else return false;
         } catch (err) {
-            logger.error(err);
+            this.loadLogger.error(err);
             return false;
         }
     }
@@ -243,10 +251,28 @@ class Utility {
 
             rtn = response;
         } catch (err) {
-            logger.error(err);
+            this.loadLogger.error(err);
         } finally {
             return rtn;
         }
+    }
+
+    routerSend(res, data) {
+        this.loadLogger.info(data);
+
+        const rtn = {
+            data: data,
+        };
+        res.send(rtn);
+    }
+
+    routerError(res, data) {
+        this.loadLogger.error(data);
+
+        const rtn = {
+            error: data,
+        };
+        res.send(rtn);
     }
 }
 
