@@ -15,6 +15,7 @@ const Account = require('@src/database/models/account');
 const User = require('@src/database/models/user');
 const Candidate = require('@src/database/models/candidate');
 const Vote = require('@src/database/models/vote');
+const VoteRecord = require('@src/database/models/voteRecord');
 
 /* Constants */
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -36,7 +37,9 @@ class Database {
             user: User,
             candidate: Candidate,
             vote: Vote,
+            voteRecord: VoteRecord,
         };
+        this.Op = Sequelize.Op;
     }
 
     /**
@@ -53,12 +56,14 @@ class Database {
             this.models.user.init(this.models.sequelize);
             this.models.candidate.init(this.models.sequelize);
             this.models.vote.init(this.models.sequelize);
+            this.models.voteRecord.init(this.models.sequelize);
 
             // Associate the models
             this.models.account.associate(this.models);
             this.models.user.associate(this.models);
             this.models.candidate.associate(this.models);
             this.models.vote.associate(this.models);
+            this.models.voteRecord.init(this.models.sequelize);
 
             await this.models.sequelize.sync({ force, logging });
             logger.info('Initialize the database (sequelize).');

@@ -17,10 +17,9 @@ const router = express.Router();
 /** Process the Vote Page **/
 
 /* GET */
-// '/vote/list': vote list request.
-router.get('/list', voteMiddleware.getVoteList);
 
 /* POST */
+router.post('/getVoteList', voteMiddleware.getVoteList);
 router.post('/addVote', authMiddleware.isNotSignedIn, voteMiddleware.addVote);
 router.post('/addCandidate', authMiddleware.isNotSignedIn, voteMiddleware.addCandidate);
 router.post('/vote', authMiddleware.isNotSignedIn, voteMiddleware.vote);

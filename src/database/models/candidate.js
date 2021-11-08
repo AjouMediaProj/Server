@@ -16,20 +16,47 @@ class Candidate extends Sequelize.Model {
     static init(sequelize) {
         return super.init(
             {
-                uid: {
-                    type: Sequelize.STRING(128),
+                idx: {
+                    type: Sequelize.INTEGER,
                     allowNull: false,
                     unique: true,
+                    primaryKey: true,
+                },
+                voteIdx: {
+                    type: Sequelize.INTEGER,
+                    allowNull: true,
+                    defaultValue: 0,
+                    unique: false,
                 },
                 name: {
-                    type: Sequelize.STRING(20),
+                    type: Sequelize.STRING,
                     allowNull: true,
+                    defaultValue: '',
                     unique: false,
-                    defaultValue: 'defaultValue0000',
                 },
                 img: {
-                    type: Sequelize.STRING(200),
+                    type: Sequelize.STRING,
                     allowNull: true,
+                    defaultValue: '',
+                    unique: false,
+                },
+                txt: {
+                    type: Sequelize.STRING,
+                    allowNull: true,
+                    defaultValue: '',
+                    unique: false,
+                },
+                count: {
+                    type: Sequelize.INTEGER,
+                    allowNull: true,
+                    defaultValue: 0,
+                    unique: false,
+                },
+                status: {
+                    type: Sequelize.INTEGER,
+                    allowNull: true,
+                    defaultValue: 0,
+                    unique: false,
                 },
             },
             {

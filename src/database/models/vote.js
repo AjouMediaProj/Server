@@ -22,25 +22,44 @@ class Vote extends Sequelize.Model {
      */
     static init(sequelize) {
         const attributes = {
-            uid: {
-                type: Sequelize.STRING(128),
+            idx: {
+                type: Sequelize.INTEGER,
                 allowNull: false,
                 unique: true,
-            },
-            title: {
-                type: Sequelize.STRING(32),
-                allowNull: true,
-                unique: false,
-            },
-            period: {
-                type: Sequelize.STRING(24),
-                allowNull: true,
-                defaultValue: '0000.00.00 ~ 0000.00.00',
-                unique: false,
+                primaryKey: true,
             },
             category: {
-                type: Sequelize.STRING(32),
-                allowNull: false,
+                type: Sequelize.INTEGER,
+                allowNull: true,
+                defaultValue: 0,
+                unique: false,
+            },
+            name: {
+                type: Sequelize.STRING,
+                allowNull: true,
+                defaultValue: '',
+                unique: false,
+            },
+            totalCount: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
+                defaultValue: 0,
+                unique: false,
+            },
+            startTime: {
+                type: Sequelize.DATE,
+                allowNull: true,
+                unique: false,
+            },
+            endTime: {
+                type: Sequelize.DATE,
+                allowNull: true,
+                unique: false,
+            },
+            status: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
+                defaultValue: 0,
                 unique: false,
             },
         };
