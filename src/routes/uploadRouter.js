@@ -1,3 +1,10 @@
+/**
+ * uploadRouter.js
+ * Last modified: 2021.10.16
+ * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
+ * Description: Express router related to upload feature.
+ */
+
 /* Modules */
 const fs = require('fs');
 const path = require('path');
@@ -5,6 +12,8 @@ const multer = require('multer');
 const multerS3 = require('multer-s3');
 const express = require('express');
 const AWS = require('aws-sdk');
+const uploadMiddleware = require('@src/routes/middlewares/uploadMiddleware');
+const authMiddleware = require('@src/routes/middlewares/authMiddleware');
 
 /* Utils */
 const moment = require('moment');
@@ -13,70 +22,28 @@ const logger = require('@src/utils/logger');
 /* Variables */
 const router = express.Router();
 
-const localUploader = multer({
-    storage: multer.diskStorage({
-        destination(req, file, done) {
-            done(null, `${dirname}/`);
-        },
-        filename(req, file, done) {
-            const ext = path.extname(file.originalname);
-            done(null, `${path.basename(file.originalname, ext)}${Date.now()}${ext}`);
-        },
-    }),
-    limits: { fileSize: 5 * 1024 * 1024 },
-});
+/**
+ * Local Uploader
+ */
 
-const awsUploader = null;
+/* GET */
 
-class UploadRouter {
-    constructor() {
-        this.multer = null;
-        this.router = express.Router();
-        this.initAWS();
-        this.initUploader('');
-    }
+// '/upload/local': Upload test page request. (using the local upload (multer) system.)
+router.get('/local', uploadMiddleware.uploadPage);
 
-    checkDirExist(dirname) {
-        try {
-            fs.readdirSync(dirname);
-        } catch (err) {
-            logger.error(`${dirname} directory not exists. Create new directory ${dirname}`);
-            fs.mkdirSync(dirname);
-        }
-    }
+/* POST */
 
-    initAWS() {
-        AWS.config.update({
-            accessKeyId: process.env.S3_ACCESS_KEY_ID,
-            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-            region: 'ap-northeast-2',
-        });
-    }
+// '/upload/local': Send file to server (using the local upload (multer) system.)
+router.post('/local/sendfile', uploadMiddleware.localUploader.fields([{ name: 'image1' }, { name: 'image2' }]), uploadMiddleware.uploadToLocal);
 
-    initUploader(dirname) {
-        this.upload = multer({
-            storage: multer.diskStorage({
-                destination(req, file, done) {
-                    done(null, `${dirname}/`);
-                },
-                filename(req, file, done) {
-                    const ext = path.extname(file.originalname);
-                    done(null, `${path.basename(file.originalname, ext)}${Date.now()}${ext}`);
-                },
-            }),
-            limits: { fileSize: 5 * 1024 * 1024 },
-        });
+/**
+ * AWS S3 Uploader
+ */
 
-        this.router
-            .route('/local')
-            .get((req, res) => {
-                res.sendFile(path.resolve('views/multipart.html'));
-            })
-            .post(this.upload.fields([{ name: 'image1' }, { name: 'image2' }]), (req, res) => {
-                console.log(req.files, req.body);
-                res.send('ok');
-            });
-    }
-}
+/* GET */
 
-module.exports = new UploadRouter();
+/* POST */
+router.post('/img', authMiddleware.isSignedIn, uploadMiddleware.awsUploader.single('img'), uploadMiddleware.uploadToAWS);
+
+/* Export the router as module */
+module.exports = router;

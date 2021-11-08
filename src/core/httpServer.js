@@ -30,8 +30,8 @@ class HttpServer {
     run() {
         if (this.httpServer === null) throw new Error('Need to initialize the httpServer first.');
 
-        this.httpServer.listen(process.env.HTTP_PORT, () => {
-            logger.info(`Http Server running on port: ${process.env.HTTP_PORT}`);
+        this.httpServer.listen(process.env.EXPRESS_PORT, () => {
+            logger.info(`Http Server running on port: ${process.env.EXPRESS_PORT}`);
         });
     }
 }

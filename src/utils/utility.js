@@ -17,7 +17,7 @@ const logger = require('@src/utils/logger');
 class Utility {
     /**
      * @function constructor
-     * @description constructor of PromiseManager class
+     * @description constructor of Utility class
      */
     constructor() {}
 
@@ -98,6 +98,10 @@ class Utility {
         }
     }
 
+    isObject(obj) {
+        return typeof obj === 'object' && obj !== null;
+    }
+
     /**
      * @function compareType
      * @description Compare the types of two objects.
@@ -107,19 +111,34 @@ class Utility {
      * @param obj2 object 2.
      * @returns {boolean}
      * @example
-     * const obj1 = { a: 1, b: 2};
-     * const obj2 = { a: 3, b: 5};
-     * const obj3 = { a: 5, c: 7};
+     * const obj1 = { a: 1, b: 2, c: { d: 5, e: 7 } };
+     * const obj2 = { a: 1, b: null, c: { d: 'abcd', e: 7 } };
+     * const obj3 = { a: 1, b: 3, c: 5 }
+     *
      * compareType(obj1, obj2) -> true
      * compareType(obj1, obj3) -> false
      */
     compareType(obj1, obj2) {
-        if (typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+        if (Object.keys(obj1).length !== Object.keys(obj2).length) {
             return false;
         }
 
-        for (let key in obj2) {
-            if (!obj1.hasOwnProperty(key)) {
+        for (let key in obj1) {
+            if (obj2.hasOwnProperty(key)) {
+                let isObjCnt = 0;
+                isObjCnt += this.isObject(obj1[key]) ? 1 : 0;
+                isObjCnt += this.isObject(obj1[key]) ? 1 : 0;
+
+                if (isObjCnt == 1) {
+                    return false;
+                }
+
+                if (isObjCnt == 2) {
+                    if (!this.compareType(obj1[key], obj2[key])) {
+                        return false;
+                    }
+                }
+            } else {
                 return false;
             }
         }
@@ -135,20 +154,33 @@ class Utility {
      * @param obj2 object 2.
      * @returns {boolean}
      * @example
-     * const obj1 = { a: 1, b: 2};
-     * const obj2 = { a: 1, b: 2};
-     * const obj3 = { a: 2, c: 5};
+     * const obj1 = { a: 1, b: 2, c: 5};
+     * const obj2 = { a: 1, b: 2, c: 5};
+     * const obj3 = { a: 1, c: 5};
      * equals(obj1, obj2) -> true
      * equals(obj1, obj3) -> false
      */
     equals(obj1, obj2) {
-        if (!this.compareType(obj1, obj2)) {
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+
+        if (keys1.length !== keys2.length) {
             return false;
         }
 
-        for (let key in obj2) {
-            if (obj1[key] !== obj2[key]) {
-                return false;
+        for (let key of keys1) {
+            const val1 = obj1[key];
+            const val2 = obj2[key];
+            const areBothObj = this.isObject(val1) && this.isObject(val2);
+
+            if (areBothObj) {
+                if (!this.equals(val1, val2)) {
+                    return false;
+                }
+            } else {
+                if (val1 !== val2) {
+                    return false;
+                }
             }
         }
 
@@ -168,7 +200,7 @@ class Utility {
      * merge(obj1, obj2) -> {a: 1, b: 2, c: 5, d: 3}
      */
     merge(src, dest) {
-        if (typeof src !== 'object' || typeof dest !== 'object') {
+        if (!this.isObject(src) && !this.isObject(dest)) {
             return false;
         }
         for (let key in src) {

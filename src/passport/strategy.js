@@ -1,6 +1,6 @@
 /**
  * strategy.js
- * Last modified: 2021.10.16
+ * Last modified: 2021.11.04
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Initialize the passport configurations.
  */
@@ -8,7 +8,7 @@
 /* Modules */
 const passportLocal = require('passport-local');
 const passportKakao = require('passport-kakao');
-const userManager = require('@src/database/userManager');
+const accountManager = require('@src/database/managers/accountManager');
 
 const LocalStrategy = passportLocal.Strategy;
 const KakaoStrategy = passportKakao.Strategy;
@@ -42,20 +42,20 @@ class Strategy {
 
         const callback = async (email, password, done) => {
             try {
-                const user = await userManager.isValidAccount(email, 'blote');
+                const account = await accountManager.findAccountByEmail(email);
 
-                // account does not exist.
-                if (!user) {
+                // Check whether the account exist in the database or not.
+                if (!account) {
                     done(null, false, { message: 'This account does not exist.' });
                 }
 
-                // Invalid password.
-                const isValid = await encryption.compareHash(password, user.salt, user.password);
-                if (!isValid) {
+                // Check wheter the password is valid or not.
+                const isValidPassword = await encryption.compareHash(password, account.salt, account.password);
+                if (!isValidPassword) {
                     done(null, false, { message: `The password doesn't match.` });
                 }
 
-                // success to authenticate user's account.
+                // success to authenticate the account.
                 done(null, user);
             } catch (err) {
                 logger.error(err);
@@ -83,13 +83,14 @@ class Strategy {
 
         const callback = async (accessToken, refreshToken, profile, done) => {
             try {
-                const exUser = await userManager.isValidAccount(profile._json.kakao_account.email);
-                if (exUser) {
-                    done(null, exUser.dataValues);
+                const account = await accountManager.findAccountByEmail(profile._sjon.kakao_account.email);
+
+                if (account) {
+                    done(null, account.dataValues);
                 } else {
-                    const newUser = await userManager.createKakaoUserObject(profile);
-                    await userManager.createUser(newUser);
-                    done(null, newUser);
+                    const newAccount = await accountManager.makeAccountObj(accountManager.accountType.kakao, profile._json.kakao_account.email, -1, profile.id);
+                    await accountManager.createAccount(newAccount);
+                    done(null, newAccount);
                 }
             } catch (err) {
                 logger.error(err);
