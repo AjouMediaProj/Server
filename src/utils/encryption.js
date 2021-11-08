@@ -1,6 +1,6 @@
 /**
  * entryption.js
- * Last modified: 2021.10.11
+ * Last modified: 2021.11.08
  * Author: Lee Hong Jun
  * Description: entryption.js can be used to encrypt user's password or auth code.. etc
  */
@@ -11,7 +11,7 @@ const bcrypt = require('bcrypt');
 
 /* Utils */
 const util = require('util');
-const logger = require('./logger');
+const logger = require('@src/utils/logger');
 
 /**
  * @class Entryption
@@ -32,20 +32,23 @@ class Entryption {
      * @description Create random salt string.
      *
      * @param {number} size Size of random bytes.
-     * @return {promise} Promise of salt string. (ex. arg size: 32, -> return salt string size: 64 (x2))
+     * @returns {promise<string>} Promise of salt string. (ex. arg size: 16, -> return salt string size: 32 (x2))
      * @example
      * In async function,
      * ...
-     * const salt = await createhSalt();
+     * const salt = await encryption.createhSalt();
      * ...
      */
-    async createSalt(size) {
+    async createSalt(size = 16) {
+        let salt = null;
+
         try {
-            const salt = await util.promisify(crypto.randomBytes)(size);
-            return salt.toString('hex');
+            salt = await util.promisify(crypto.randomBytes)(size);
+            salt = salt.toString('hex');
         } catch (err) {
             logger.error(err);
-            return '';
+        } finally {
+            return salt;
         }
     }
 
@@ -55,46 +58,78 @@ class Entryption {
      *
      * @param {string} str String to encrypt.
      * @param {string} salt String to be used as salt.
-     * @return {promise} Promise of hash string
+     * @returns {promise<string>} Promise of hash string.
      * @example
      * In async function,
      * ...
-     * const salt = await createSalt();
-     * const hash = await createHash('string to encrypt', salt);
+     * const salt = await encryption.createSalt();
+     * const hash = await encryption.createHash('string to encrypt', salt);
      * ...
      */
     async createHash(str, salt) {
+        let hash = null;
+
         try {
-            const hash = await util.promisify(crypto.pbkdf2)(str, salt, 100000, salt.length, 'sha512');
-            return hash.toString('hex');
+            hash = await util.promisify(crypto.pbkdf2)(str, salt, 100000, salt.length, 'sha512');
+            hash = hash.toString('hex');
         } catch (err) {
             logger.error(err);
-            return '';
+        } finally {
+            return hash;
         }
     }
 
     /**
      * @async @function compareHash
-     * @description Compare string and hash string using salt.
+     * @description Compare plain string and hash string using salt.
      *
      * @param {string} str Normal string.
      * @param {string} salt Salt string.
      * @param {string} hashStr Hash string.
-     * @return {promise} Promise of hash string
+     * @returns {promise<boolean>} Promise result of comparison (boolean).
      * @example
      * In async function,
      * ...
-     * const salt = await createSalt();
-     * const hash = await createHash('string to encrypt', salt);
+     * const password = req.body.pw;
+     * const salt = userInDB.salt;
+     * const hashPW = userInDB.password;
+     * const result = await encryption.compareHash(password, salt, hashPW);
      * ...
      */
     async compareHash(str, salt, hashStr) {
+        let result = false;
+
         try {
             const hash = await this.createHash(str, salt);
-            return hash === hashStr;
+            result = hash === hashStr;
         } catch (err) {
             logger.error(err);
-            return false;
+        } finally {
+            return result;
+        }
+    }
+
+    /**
+     * @async @function createBcryptSalt
+     * @description Create random salt string (Bcrypt).
+     *
+     * @param {number} saltRounds The cost of process the data.
+     * @returns {promise<string>} Promise of salt string.
+     * @example
+     * In async function,
+     * ...
+     * const bSalt = await encryption.createBcryptSalt(12);
+     * ...
+     */
+    async createBcryptSalt(saltRounds = 10) {
+        let salt = null;
+
+        try {
+            salt = await bcrypt.genSalt(saltRounds);
+        } catch (err) {
+            logger.error(err);
+        } finally {
+            return salt;
         }
     }
 
@@ -103,41 +138,52 @@ class Entryption {
      * @description Encrypt the string using hash algorithm. (bcrypt)
      *
      * @param {string} str String to encrypt.
-     * @return {promise} Promise of hash string
+     * @param {string} salt Bcrypt salt string. (Don't use createSalt() result to this parameter.)
+     * @returns {promise<string>} Promise of hash string (Length: 60)
      * @example
      * In async function,
      * ...
-     * const hash = await createBcrypt('abcd');
+     * const salt = await encryption.createBcryptSalt(12);
+     * const hash = await encryption.createBcrypt('String to encrypt', salt);
      * ...
      */
-    async createBcrypt(str) {
+    async createBcrypt(str, salt) {
+        let hash = null;
+
         try {
-            const hash = await bcrypt.hash(str, 12);
-            return hash;
+            hash = await bcrypt.hash(str, salt);
+            hash = hash.toString('hex');
         } catch (err) {
             logger.error(err);
+        } finally {
+            return hash;
         }
     }
 
     /**
      * @async @function compareBcrypt
-     * @description Encrypt the string using hash algorithm. (bcrypt)
+     * @description Compare plain string and hash string using salt. (bcrypt)
      *
-     * @param {string} str1 String to encrypt.
-     * @return {boolean} Promise of hash string
+     * @param {string} str Plain string.
+     * @param {string} hashStr Bcrypt hash string.
+     * @returns {Promise<boolean>} Promise result of comparison (boolean).
      * @example
      * In async function,
-     * const salt = await createSalt();
-     * const hash = await createHash('string to encrypt', salt);
+     * ...
+     * const password = req.body.pw;
+     * const hashPW = userInDB.password;
+     * const result = await encryption.compareBcrypt(password, hashPW);
      * ...
      */
     async compareBcrypt(str, hashStr) {
+        let result = false;
+
         try {
-            const result = await bcrypt.compare(str, hashStr);
-            return result;
+            result = await bcrypt.compare(str, hashStr);
         } catch (err) {
             logger.error(err);
-            return false;
+        } finally {
+            return result;
         }
     }
 
@@ -146,6 +192,7 @@ class Entryption {
      * @description Encrypt the string.
      *
      * @param {string} str String to encrypt.
+     * @returns {string} Cipher string.
      */
     createCipher(str) {
         const cipher = crypto.createCipheriv(this.cipherAlgorithm, this.cipherKey, this.cipherIV);
@@ -160,6 +207,7 @@ class Entryption {
      * @description Decodes the string.
      *
      * @param {string} str String to be decrypted.
+     * @result {string} Plain string.
      */
     createDecipher(str) {
         const decipher = crypto.createDecipheriv(this.cipherAlgorithm, this.cipherKey, this.cipherIV);
