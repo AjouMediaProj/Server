@@ -8,6 +8,13 @@
 /* Modules */
 require('dotenv').config();
 const logger = require('@src/utils/logger');
+const utility = require('@src/utils/utility');
+
+/* Manager */
+const voteMgr = require('@src/database/managers/voteManager');
+const candidateMgr = require('@src/database/managers/candidateManager');
+const voteRecordMgr = require('@src/database/managers/voteRecordManager');
+
 const contract = require('@src/blockchain/contract');
 
 /**
@@ -18,60 +25,75 @@ class VoteMiddleware {
     constructor() {}
 
     async getVoteList(req, res) {
-        const arr = [];
-        arr.push({ id: 1, text: '26대 총학생회 선거!', date: '2121.10.11 ~ 2021.12.11!', category: '총학생회' });
-        arr.push({ id: 2, text: '26대 총학생회 선거!!', date: '2121.10.11~2021.12.11!!', category: '총학생회' });
-        arr.push({ id: 3, text: '자연과학대학2', date: '2121.10.11~2021.12.11', category: '단과대학교' });
-        arr.push({ id: 4, text: '미디어학과', date: '2121.10.11~2021.12.11', category: '학과' });
-        arr.push({ id: 5, text: '경제학과', date: '2121.10.11~2021.12.11', category: '학과' });
-        arr.push({ id: 6, text: '금융공학과1', date: '2121.10.11~2021.12.11', category: '학과' });
-        arr.push({ id: 7, text: '자연과학대학3', date: '2121.10.11~2021.12.11', category: '단과대학교' });
-        arr.push({ id: 8, text: '자연과학대학4', date: '2121.10.11~2021.12.11', category: '단과대학교' });
-        arr.push({ id: 9, text: '자연과학대학5', date: '2121.10.11~2021.12.11', category: '단과대학교' });
-        arr.push({ id: 10, text: '자연과학대학6', date: '2121.10.11~2021.12.11', category: '단과대학교' });
-        arr.push({ id: 11, text: '금융공학과2', date: '2121.10.11~2021.12.11', category: '학과' });
-        arr.push({ id: 12, text: '금융공학과43', date: '2121.10.11~2021.12.11', category: '학과' });
-        arr.push({ id: 13, text: '금융공학과5', date: '2121.10.11~2021.12.11', category: '학과' });
-        arr.push({ id: 14, text: '금융공학과4', date: '2121.10.11~2021.12.11', category: '학과' });
-        res.send(arr);
+        const reqKeys = {};
+        const resKeys = {
+            list: 'list',
+        };
+
+        try {
+            const resData = {};
+
+            let rtn = [];
+
+            const votes = await voteMgr.findEnableVotes();
+            for (let i in votes) {
+                let item = votes[i].dataValues;
+                item.startTime = utility.convertToTimestamp(item.startTime);
+                item.endTime = utility.convertToTimestamp(item.endTime);
+                item.candidates = await candidateMgr.findCandidates(votes[i].idx);
+
+                rtn.push(item);
+            }
+
+            resData[resKeys.list] = rtn;
+
+            utility.routerSend(res, resData);
+        } catch (err) {
+            utility.routerError(res, err);
+        }
     }
 
     async addVote(req, res) {
         const reqKeys = {
+            category: 'category',
             voteName: 'voteName',
             startTime: 'startTime',
             endTime: 'endTime',
         };
         const resKeys = {
             idx: 'idx',
+            category: 'category',
             voteName: 'voteName',
+            totalCount: 'totalCount',
             startTime: 'startTime',
             endTime: 'endTime',
+            status: 'status',
         };
 
         try {
             const resData = {};
             const body = req.body;
+            const category = body[reqKeys.category];
             const voteName = body[reqKeys.voteName];
             const startTime = body[reqKeys.startTime];
             const endTime = body[reqKeys.endTime];
 
-            // @todo - Insert DB(startTransaction ~ query)
-
             const rtn = await contract.addVote(voteName, startTime, endTime);
 
-            // @todo - Insert DB(commit or rollback ~ release)
+            const voteObj = await voteMgr.makeVoteObj(rtn.idx, category, voteName, startTime * 1000, endTime * 1000);
+            await voteMgr.create(voteObj);
 
-            resData[resKeys.idx] = rtn.idx;
-            resData[resKeys.voteName] = rtn.name;
-            resData[resKeys.startTime] = rtn.startTime;
-            resData[resKeys.endTime] = rtn.endTime;
+            resData[resKeys.idx] = voteObj.idx;
+            resData[resKeys.category] = voteObj.category;
+            resData[resKeys.voteName] = voteObj.name;
+            resData[resKeys.totalCount] = voteObj.totalCount;
+            resData[resKeys.startTime] = voteObj.startTime;
+            resData[resKeys.endTime] = voteObj.endTime;
+            resData[resKeys.status] = voteObj.status;
 
-            logger.info(resData);
-            res.send(resData);
+            utility.routerSend(res, resData);
         } catch (err) {
-            logger.error(err);
-            res.send(err);
+            utility.routerError(res, err);
         }
     }
 
@@ -83,6 +105,8 @@ class VoteMiddleware {
         const resKeys = {
             idx: 'idx',
             candName: 'candName',
+            photo: 'photo',
+            img: 'img',
         };
 
         try {
@@ -91,20 +115,20 @@ class VoteMiddleware {
             const voteIdx = body[reqKeys.voteIdx];
             const candName = body[reqKeys.candName];
 
-            // @todo - Save Image, Insert DB(startTransaction ~ query)
-
             const rtn = await contract.addCandidate(voteIdx, candName);
 
-            // @todo - Insert DB(commit or rollback ~ release)
+            // @todo - Save Image, Insert DB(startTransaction ~ query)
+            const candObj = await candidateMgr.makeCandidateObj(rtn.idx, voteIdx, candName, '', '');
+            await candidateMgr.create(candObj);
 
-            resData[resKeys.idx] = rtn.idx;
-            resData[resKeys.candName] = rtn.name;
+            resData[resKeys.idx] = candObj.idx;
+            resData[resKeys.candName] = candObj.name;
+            resData[resKeys.photo] = candObj.photo;
+            resData[resKeys.img] = candObj.img;
 
-            logger.info(resData);
-            res.send(resData);
+            utility.routerSend(res, resData);
         } catch (err) {
-            logger.error(err);
-            res.send(err);
+            utility.routerError(res, err);
         }
     }
 
@@ -125,20 +149,22 @@ class VoteMiddleware {
             const candIdx = Number(body[reqKeys.candIdx]);
             const renounce = body[reqKeys.renounce];
 
-            // @todo - Check user's status
-            // @todo - Update user's status, Insert DB(startTransaction ~ query)
+            const userIdx = 1; // Temp Data
+            const result = await voteRecordMgr.findVoteRecord(voteIdx, userIdx);
+            if (result != null) {
+                throw 'error: user already voted';
+            }
 
             const rtn = await contract.vote(voteIdx, candIdx, renounce);
 
-            // @todo - Insert DB(commit or rollback ~ release)
+            const recordObj = await voteRecordMgr.makeVoteRecordObj(voteIdx, userIdx);
+            await voteRecordMgr.create(recordObj);
 
             resData[resKeys.receipt] = rtn.receipt;
 
-            logger.info(resData);
-            res.send(resData);
+            utility.routerSend(res, resData);
         } catch (err) {
-            logger.error(err);
-            res.send(err);
+            utility.routerError(res, err);
         }
     }
 
@@ -177,11 +203,9 @@ class VoteMiddleware {
             resData[resKeys.endTime] = voteData.endTime;
             resData[resKeys.status] = voteData.status;
 
-            logger.info(resData);
-            res.send(resData);
+            utility.routerSend(res, resData);
         } catch (err) {
-            logger.error(err);
-            res.send(err);
+            utility.routerError(res, err);
         }
     }
 
@@ -206,11 +230,9 @@ class VoteMiddleware {
             resData[resKeys.candIdx] = decodedData.candIdx;
             resData[resKeys.renounce] = decodedData.renounce;
 
-            logger.info(resData);
-            res.send(resData);
+            utility.routerSend(res, resData);
         } catch (err) {
-            logger.error(err);
-            res.send(err);
+            utility.routerError(res, err);
         }
     }
 }

@@ -40,6 +40,16 @@ class BaseManager {
     }
 
     /**
+     * @function getOp
+     * @description Get sequelize operators
+     *
+     * @returns {Sequelize.Op} Sequelize operators
+     */
+    get getOp() {
+        return database.Op;
+    }
+
+    /**
      * @async @function create
      * @description Create new tuple in database.
      *
@@ -48,14 +58,10 @@ class BaseManager {
      * @returns {object} Result object from database.
      */
     async create(modelName, baseObj) {
-        let result = null;
-
         try {
-            user = await this.getModel(modelName).create(baseObj);
+            await this.getModel(modelName).create(baseObj);
         } catch (err) {
             logger.error(err);
-        } finally {
-            return user;
         }
     }
 

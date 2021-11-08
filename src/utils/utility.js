@@ -274,6 +274,10 @@ class Utility {
         };
         res.send(rtn);
     }
+
+    convertToTimestamp(timestring, milisec = false) {
+        return milisec ? new Date(timestring).getTime() : new Date(timestring).getTime() / 1000;
+    }
 }
 
 /* Export the class as module */
