@@ -40,7 +40,6 @@ class VoteMiddleware {
                 let item = votes[i].dataValues;
                 item.startTime = utility.convertToTimestamp(item.startTime);
                 item.endTime = utility.convertToTimestamp(item.endTime);
-                item.candidates = await candidateMgr.findCandidates(votes[i].idx);
 
                 rtn.push(item);
             }
@@ -80,15 +79,15 @@ class VoteMiddleware {
 
             const rtn = await contract.addVote(voteName, startTime, endTime);
 
-            const voteObj = await voteMgr.makeVoteObj(rtn.idx, category, voteName, startTime * 1000, endTime * 1000);
+            const voteObj = await voteMgr.makeVoteObj(Number(rtn.idx), category, voteName, startTime * 1000, endTime * 1000);
             await voteMgr.create(voteObj);
 
             resData[resKeys.idx] = voteObj.idx;
             resData[resKeys.category] = voteObj.category;
             resData[resKeys.voteName] = voteObj.name;
             resData[resKeys.totalCount] = voteObj.totalCount;
-            resData[resKeys.startTime] = voteObj.startTime;
-            resData[resKeys.endTime] = voteObj.endTime;
+            resData[resKeys.startTime] = voteObj.startTime / 1000;
+            resData[resKeys.endTime] = voteObj.endTime / 1000;
             resData[resKeys.status] = voteObj.status;
 
             utility.routerSend(res, resData);
@@ -118,7 +117,7 @@ class VoteMiddleware {
             const rtn = await contract.addCandidate(voteIdx, candName);
 
             // @todo - Save Image, Insert DB(startTransaction ~ query)
-            const candObj = await candidateMgr.makeCandidateObj(rtn.idx, voteIdx, candName, '', '');
+            const candObj = await candidateMgr.makeCandidateObj(Number(rtn.idx), voteIdx, candName, '', '');
             await candidateMgr.create(candObj);
 
             resData[resKeys.idx] = candObj.idx;
@@ -149,7 +148,7 @@ class VoteMiddleware {
             const candIdx = Number(body[reqKeys.candIdx]);
             const renounce = body[reqKeys.renounce];
 
-            const userIdx = 1; // Temp Data
+            const userIdx = 2; // Temp Data
             const result = await voteRecordMgr.findVoteRecord(voteIdx, userIdx);
             if (result != null) {
                 throw 'error: user already voted';
@@ -187,18 +186,13 @@ class VoteMiddleware {
             const body = req.body;
             const voteIdx = body[reqKeys.voteIdx];
 
-            const voteData = await contract.getVote(voteIdx);
+            const voteData = await voteMgr.findVote(voteIdx);
+            const candidates = await candidateMgr.findCandidates(voteIdx);
 
-            let candidates = [];
-            for (let i in voteData.candIdxes) {
-                const candData = await contract.getCandidate(voteData.candIdxes[i]);
-                candidates.push(candData);
-            }
-
-            resData[resKeys.idx] = voteData.voteIdx;
-            resData[resKeys.voteName] = voteData.voteName;
+            resData[resKeys.idx] = voteData.idx;
+            resData[resKeys.voteName] = voteData.name;
             resData[resKeys.candidates] = candidates;
-            resData[resKeys.totalVoteCnt] = voteData.totalVoteCnt;
+            resData[resKeys.totalVoteCnt] = voteData.totalCount;
             resData[resKeys.startTime] = voteData.startTime;
             resData[resKeys.endTime] = voteData.endTime;
             resData[resKeys.status] = voteData.status;
