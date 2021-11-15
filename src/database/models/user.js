@@ -1,8 +1,8 @@
 /**
  * user.js
- * Last modified: 2021.10.13
- * Author: Lee Hong Jun
- * Description: User model
+ * Last modified: 2021.11.08
+ * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
+ * Description: User Model in Sequelize
  */
 
 /* Modules */
@@ -14,38 +14,35 @@ const Sequelize = require('sequelize');
  */
 class User extends Sequelize.Model {
     static init(sequelize) {
+        // attributes
         const attributes = {
-            uid: {
-                type: Sequelize.STRING(128),
+            idx: {
+                type: Sequelize.INTEGER,
                 allowNull: false,
                 unique: true,
+                primaryKey: true,
             },
             name: {
-                type: Sequelize.STRING(15),
+                type: Sequelize.STRING(32),
                 allowNull: true,
             },
             nickname: {
-                type: Sequelize.STRING(15),
+                type: Sequelize.STRING(32),
                 allowNull: true,
-                defaultValue: 'user0000',
             },
-            age: {
+            major: {
                 type: Sequelize.INTEGER,
-                defaultValue: 0,
-            },
-            gender: {
-                type: Sequelize.INTEGER,
-                defaultValue: 0,
-            },
-            birthday: {
-                type: Sequelize.DATE,
+                unique: true,
+                allowNull: false,
             },
             accessLevel: {
                 type: Sequelize.INTEGER,
                 defaultValue: 0, // 0: normal user, 1: administrator, -1: inactive account
+                allowNull: false,
             },
         };
 
+        // options
         const opts = {
             sequelize,
             timestamps: true,
@@ -59,8 +56,6 @@ class User extends Sequelize.Model {
 
         return super.init(attributes, opts);
     }
-
-    static associate(models) {}
 }
 
 /* Exports */

@@ -1,6 +1,6 @@
 /**
  * account.js
- * Last modified: 2021.11.03
+ * Last modified: 2021.11.08
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Account Model in Sequelize
  */
@@ -14,39 +14,30 @@ const Sequelize = require('sequelize');
  */
 class Account extends Sequelize.Model {
     static init(sequelize) {
+        // attributes
         const attributes = {
-            uid: {
-                type: Sequelize.STRING(128),
+            idx: {
+                type: Sequelize.INTEGER,
                 allowNull: false,
                 unique: true,
+                primaryKey: true,
             },
             email: {
-                type: Sequelize.STRING(40),
+                type: Sequelize.STRING(48),
                 allowNull: false,
                 unique: true,
             },
-            schoolEmail: {
-                type: Sequelize.STRING(40),
-                allowNull: true,
-            },
             password: {
-                type: Sequelize.STRING(128),
-                allowNull: true,
+                type: Sequelize.STRING(64),
+                allowNull: false,
             },
             salt: {
-                type: Sequelize.STRING(64),
-                allowNull: true,
-            },
-            snsId: {
                 type: Sequelize.STRING(32),
-                defaultValue: -1,
-            },
-            provider: {
-                type: Sequelize.INTEGER,
-                defaultValue: 0,
+                allowNull: false,
             },
         };
 
+        // options
         const opts = {
             sequelize,
             timestamps: true,
@@ -60,8 +51,6 @@ class Account extends Sequelize.Model {
 
         return super.init(attributes, opts);
     }
-
-    static associate(models) {}
 }
 
 /* Exports */

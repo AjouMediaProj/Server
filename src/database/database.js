@@ -59,11 +59,11 @@ class Database {
             this.models.voteRecord.init(this.models.sequelize);
 
             // Associate the models
-            this.models.account.associate(this.models);
+            /*this.models.account.associate(this.models);
             this.models.user.associate(this.models);
             this.models.candidate.associate(this.models);
             this.models.vote.associate(this.models);
-            this.models.voteRecord.init(this.models.sequelize);
+            this.models.voteRecord.init(this.models.sequelize);*/
 
             await this.models.sequelize.sync({ force, logging });
             logger.info('Initialize the database (sequelize).');

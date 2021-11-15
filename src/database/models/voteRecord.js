@@ -39,8 +39,6 @@ class VoteRecord extends Sequelize.Model {
             },
         );
     }
-
-    static associate(models) {}
 }
 
 /* Exports */
