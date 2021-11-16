@@ -1,5 +1,3 @@
-//@ts-check
-
 /**
  * contract.js
  * Last modified: 2021.10.19
@@ -264,7 +262,10 @@ class Contract {
         const receipt = await this.sendTransaction(signedData);
         const res = await this.eventResponse(CONTRACT_EVENT.addVote, receipt);
 
-        utility.merge(res, rtn);
+        rtn.idx = Number(res.idx);
+        rtn.name = res.name;
+        rtn.startTime = Number(res.startTime);
+        rtn.endTime = Number(res.endTime);
 
         return rtn;
     }
@@ -287,7 +288,8 @@ class Contract {
         const receipt = await this.sendTransaction(signedData);
         const res = await this.eventResponse(CONTRACT_EVENT.addCandidate, receipt);
 
-        utility.merge(res, rtn);
+        rtn.idx = Number(res.idx);
+        rtn.name = res.name;
 
         return rtn;
     }
@@ -334,7 +336,13 @@ class Contract {
 
         const res = await this.callContract(CONTRACT_FUNC.getVote, voteIdx);
 
-        utility.merge(res, rtn);
+        rtn.voteIdx = Number(res.voteIdx);
+        rtn.voteName = res.voteName;
+        rtn.candIdxes = res.candIdxes;
+        rtn.totalVoteCnt = Number(res.totalVoteCnt);
+        rtn.startTime = Number(res.startTime);
+        rtn.endTime = Number(res.endTime);
+        rtn.status = Number(res.status);
 
         return rtn;
     }
@@ -355,7 +363,9 @@ class Contract {
 
         const res = await this.callContract(CONTRACT_FUNC.getCandidate, candIdx);
 
-        utility.merge(res, rtn);
+        rtn.candIdx = Number(res.candIdx);
+        rtn.candName = res.candName;
+        rtn.voteCnt = Number(res.voteCnt);
 
         return rtn;
     }
@@ -379,7 +389,9 @@ class Contract {
         const typesArray = klaytnConfig.abi.find((x) => x.name == CONTRACT_FUNC.vote).inputs;
         const res = await this.decodeParameters(typesArray, receipt.input.slice(10));
 
-        utility.merge(res, rtn);
+        rtn.voteIdx = Number(res.voteIdx);
+        rtn.candIdx = Number(res.candIdx);
+        rtn.renounce = res.renounce;
 
         return rtn;
     }

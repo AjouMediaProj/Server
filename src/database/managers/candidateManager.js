@@ -95,6 +95,20 @@ class CandidateManager extends BaseManager {
 
         return rtn;
     }
+
+    /**
+     * @function setCandidateCount
+     * @description Set candidate count from contract.
+     *
+     * @param {number} idx
+     * @param {number} count
+     */
+    async setCandidateCount(idx, count) {
+        const contents = { count };
+        const query = { where: { idx } };
+
+        await this.update(this.modelName, contents, query);
+    }
 }
 
 /* Export object as module */

@@ -73,6 +73,28 @@ class VoteManager extends BaseManager {
     }
 
     /**
+     * @function findVote
+     * @description Select vote from database.
+     *
+     * @param {number} idx Vote index
+     * @returns {baseVoteObject}
+     */
+    async findVote(idx) {
+        let rtn = null;
+
+        const query = {
+            where: { idx },
+        };
+        try {
+            rtn = await super.find(this.modelName, query);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
      * @function findEnableVotes
      * @description Select enable votes from database.
      *
@@ -93,6 +115,20 @@ class VoteManager extends BaseManager {
         }
 
         return rtn;
+    }
+
+    /**
+     * @function setVoteCount
+     * @description Set vote count from contract.
+     *
+     * @param {number} idx
+     * @param {number} totalCount
+     */
+    async setVoteCount(idx, totalCount) {
+        const contents = { totalCount };
+        const query = { where: { idx } };
+
+        await this.update(this.modelName, contents, query);
     }
 }
 

@@ -19,13 +19,11 @@ class VoteRecord extends Sequelize.Model {
                 voteIdx: {
                     type: Sequelize.INTEGER,
                     allowNull: false,
-                    unique: true,
                     primaryKey: true,
                 },
                 userIdx: {
                     type: Sequelize.INTEGER,
                     allowNull: false,
-                    unique: true,
                     primaryKey: true,
                 },
             },

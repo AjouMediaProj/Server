@@ -62,6 +62,7 @@ class BaseManager {
             await this.getModel(modelName).create(baseObj);
         } catch (err) {
             logger.error(err);
+            throw err;
         }
     }
 
