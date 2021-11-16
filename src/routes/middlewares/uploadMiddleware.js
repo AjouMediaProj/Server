@@ -5,6 +5,12 @@
  * Description: Various middleware callbacks used in Express server are defined.
  */
 
+/**
+ *
+ * awsUploader.single('image'); (multer) => { url: req.file.location }
+ * awsUploader.fields([]); (multer) => { url1: req.files.img1[0].location, url2: req.files.img2[0].location }
+ */
+
 /* Modules */
 require('dotenv').config();
 const fs = require('fs');
@@ -24,6 +30,10 @@ const logger = require('@src/utils/logger');
  */
 class UploadMiddleware {
     constructor() {
+        // init config
+        this.initLocalDir('/uploads');
+        this.initAWS();
+
         // local uploader (local storage)
         this.localUploader = multer({
             storage: multer.diskStorage({
@@ -44,14 +54,11 @@ class UploadMiddleware {
                 s3: new AWS.S3(),
                 bucket: `${process.env.S3_BUCKET_NAME}`,
                 key(req, file, cb) {
-                    cb(null, `original/${Date.now()}${path.basename(file.originalname)}`);
+                    cb(null, `images/${Date.now()}_${path.basename(file.originalname)}`);
                 },
             }),
             limits: { fieldSize: 5 * 1024 * 1024 },
         });
-
-        this.initLocalDir('/uploads');
-        this.initAWS();
     }
 
     initLocalDir(dirname) {
@@ -80,9 +87,17 @@ class UploadMiddleware {
         res.send('ok');
     }
 
-    uploadToAWS(req, res) {
+    uploadSingleImgToAWS(req, res) {
         logger.info(req.file);
         res.json({ url: req.file.location });
+    }
+
+    uploadMultiImgToAWS(req, res) {
+        logger.info(req.files);
+
+        const imgLocation1 = req.files.img1 !== undefined ? req.files.img1[0].location : '';
+        const imgLocation2 = req.files.img2 !== undefined ? req.files.img2[0].location : '';
+        res.json({ url1: imgLocation1, url2: imgLocation2 });
     }
 }
 
