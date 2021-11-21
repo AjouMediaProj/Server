@@ -14,6 +14,12 @@ const utility = require('@src/utils/utility');
 const baseVoteRecordObject = {
     voteIdx: null,
     userIdx: null,
+    status: null,
+};
+
+const status = {
+    default: 0,
+    verified: 1,
 };
 
 /**
@@ -25,6 +31,10 @@ class VoteRecordManager extends BaseManager {
         super();
 
         this.modelName = 'voteRecord';
+    }
+
+    get status() {
+        return status;
     }
 
     /**
@@ -40,6 +50,7 @@ class VoteRecordManager extends BaseManager {
 
         rtn.voteIdx = voteIdx;
         rtn.userIdx = userIdx;
+        rtn.status = status.default;
 
         return rtn;
     }
@@ -60,7 +71,7 @@ class VoteRecordManager extends BaseManager {
      *
      * @param {number} voteIdx Vote index
      * @param {number} userIdx User index
-     * @returns {Array<baseVoteObject>}
+     * @returns {baseVoteRecordObject}
      */
     async findVoteRecord(voteIdx, userIdx) {
         let rtn = null;
@@ -77,6 +88,25 @@ class VoteRecordManager extends BaseManager {
         }
 
         return rtn;
+    }
+
+    /**
+     * @function updateVoteRecord
+     * @description Update vote record status.
+     *
+     * @param {number} voteIdx Vote index
+     * @param {number} userIdx User index
+     * @param {number} status Vote record status
+     */
+    async updateVoteRecord(voteIdx, userIdx, status) {
+        const contents = { status };
+        const query = {
+            where: {
+                [super.getOp.and]: [{ voteIdx: { [super.getOp.eq]: voteIdx } }, { userIdx: { [super.getOp.eq]: userIdx } }],
+            },
+        };
+
+        await this.update(this.modelName, contents, query);
     }
 }
 

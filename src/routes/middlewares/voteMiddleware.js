@@ -150,14 +150,16 @@ class VoteMiddleware {
 
             const userIdx = 2; // Temp Data
             const result = await voteRecordMgr.findVoteRecord(voteIdx, userIdx);
-            if (result != null) {
+            if (result != null && result.status == voteRecordMgr.status.verified) {
                 throw 'error: user already voted';
             }
 
-            const rtn = await contract.vote(voteIdx, candIdx, renounce);
-
             const recordObj = await voteRecordMgr.makeVoteRecordObj(voteIdx, userIdx);
             await voteRecordMgr.create(recordObj);
+
+            const rtn = await contract.vote(voteIdx, candIdx, renounce);
+
+            await voteRecordMgr.updateVoteRecord(voteIdx, userIdx, voteRecordMgr.status.verified);
 
             resData[resKeys.receipt] = rtn.receipt;
 

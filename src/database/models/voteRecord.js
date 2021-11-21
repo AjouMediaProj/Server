@@ -26,6 +26,10 @@ class VoteRecord extends Sequelize.Model {
                     allowNull: false,
                     primaryKey: true,
                 },
+                status: {
+                    type: Sequelize.INTEGER,
+                    allowNull: false,
+                },
             },
             {
                 sequelize,
