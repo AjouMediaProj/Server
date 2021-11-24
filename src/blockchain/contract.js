@@ -16,6 +16,8 @@ const logger = require('@src/utils/logger');
 const CONTRACT_FUNC = {
     addVote: 'addVote',
     addCandidate: 'addCandidate',
+    updateVote: 'updateVote',
+    updateCandidate: 'updateCandidate',
 
     vote: 'vote',
 
@@ -26,6 +28,8 @@ const CONTRACT_FUNC = {
 const CONTRACT_EVENT = {
     addVote: 'AddVote',
     addCandidate: 'AddCandidate',
+    updateVote: 'UpdateVote',
+    updateCandidate: 'UpdateCandidate',
 };
 
 /**
@@ -359,6 +363,7 @@ class Contract {
             candIdx: 0,
             candName: '',
             voteCnt: 0,
+            status: 0,
         };
 
         const res = await this.callContract(CONTRACT_FUNC.getCandidate, candIdx);
@@ -366,6 +371,7 @@ class Contract {
         rtn.candIdx = Number(res.candIdx);
         rtn.candName = res.candName;
         rtn.voteCnt = Number(res.voteCnt);
+        rtn.status = Number(res.status);
 
         return rtn;
     }
@@ -392,6 +398,67 @@ class Contract {
         rtn.voteIdx = Number(res.voteIdx);
         rtn.candIdx = Number(res.candIdx);
         rtn.renounce = res.renounce;
+
+        return rtn;
+    }
+
+    /**
+     * @function updateVote
+     * @description Send updateVote transaction.
+     *
+     * @param {number} voteIdx
+     * @param {string} voteName
+     * @param {number} startTime
+     * @param {number} endTime
+     * @param {number} status
+     * @returns
+     */
+    async updateVote(voteIdx, voteName, startTime, endTime, status) {
+        let rtn = {
+            idx: 0,
+            name: '',
+            startTime: 0,
+            endTime: 0,
+            status: 0,
+        };
+
+        const signedData = await this.signContract(CONTRACT_FUNC.updateVote, voteIdx, voteName, startTime, endTime, status);
+        const receipt = await this.sendTransaction(signedData);
+        const res = await this.eventResponse(CONTRACT_EVENT.updateVote, receipt);
+
+        rtn.idx = Number(res.idx);
+        rtn.name = res.name;
+        rtn.startTime = Number(res.startTime);
+        rtn.endTime = Number(res.endTime);
+        rtn.status = Number(res.status);
+
+        return rtn;
+    }
+
+    /**
+     * @function updateCandidate
+     * @description Send updateCandidate transaction.
+     *
+     * @param {number} voteIdx
+     * @param {number} candIdx
+     * @param {string} candName
+     * @param {number} status
+     * @returns
+     */
+    async updateCandidate(voteIdx, candIdx, candName, status) {
+        let rtn = {
+            idx: 0,
+            name: '',
+            status: 0,
+        };
+
+        const signedData = await this.signContract(CONTRACT_FUNC.updateCandidate, voteIdx, candIdx, candName, status);
+        const receipt = await this.sendTransaction(signedData);
+        const res = await this.eventResponse(CONTRACT_EVENT.updateCandidate, receipt);
+
+        rtn.idx = Number(res.idx);
+        rtn.name = res.name;
+        rtn.status = Number(res.status);
 
         return rtn;
     }
