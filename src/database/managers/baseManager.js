@@ -33,7 +33,6 @@ class BaseManager {
      * @description Get the specific sequelize model(table). ex) Vote, User, Account ...
      *
      * @param {string} modelName Specific model name.
-     * @returns {Sequelize.Model} Sequelize model
      */
     getModel(modelName) {
         return database.models[modelName];

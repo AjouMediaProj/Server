@@ -1,8 +1,8 @@
 /**
- * user.js
+ * authMail.js
  * Last modified: 2021.11.24
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
- * Description: Sequelize model (User)
+ * Description: Sequelize model (AuthMail)
  */
 
 /* Modules */
@@ -11,14 +11,14 @@ const BaseModel = require('@src/database/models/baseModel');
 const Type = require('@src/utils/type');
 
 /**
- * @class User
+ * @class AuthMail
  * @extends BaseModel
- * @description User model class
+ * @description Auth Mail model class
  */
-class User extends BaseModel {
+class AuthMail extends BaseModel {
     /**
      * @static @function init
-     * @description Initialize the User Model
+     * @description Initialize the Account Model
      *
      * @param {object} sequelize Instance of Sequelize.
      * @returns {Sequelize.Model}
@@ -30,28 +30,18 @@ class User extends BaseModel {
 
         // Attributes of Account model
         const attributes = {
-            idx: {
-                type: Sequelize.INTEGER,
+            email: {
+                type: Sequelize.STRING(48),
                 allowNull: false,
                 unique: true,
                 primaryKey: true,
             },
-            name: {
-                type: Sequelize.STRING(32),
-                allowNull: true,
-            },
-            nickname: {
-                type: Sequelize.STRING(32),
-                allowNull: true,
-            },
-            major: {
-                type: Sequelize.INTEGER,
-                unique: true,
+            authCode: {
+                type: Sequelize.STRING(6),
                 allowNull: false,
             },
-            accessLevel: {
-                type: Sequelize.INTEGER,
-                defaultValue: 0, // 0: normal user, 1: administrator, -1: inactive account
+            expirationDate: {
+                type: Sequelize.DATE,
                 allowNull: false,
             },
         };
@@ -76,8 +66,8 @@ class User extends BaseModel {
      * @static @function makeObject
      * @description Make new object.
      *
-     * @param {Type.UserObject} initData Data to initialize the object.
-     * @returns {Type.UserObject} New empty object based on model.
+     * @param {Type.AuthMailObject} initData Data to initialize the object.
+     * @returns {Type.AuthMailObject} New empty object based on model.
      */
     static makeObject(initData = null) {
         return super.makeObject(initData);
@@ -85,4 +75,4 @@ class User extends BaseModel {
 }
 
 /* Export class as module */
-module.exports = User;
+module.exports = AuthMail;

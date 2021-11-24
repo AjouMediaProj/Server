@@ -31,6 +31,8 @@ router.post('/signin', authMiddleware.isNotSignedIn, authMiddleware.signIn);
 // '/auth/signup': sign up request. (using the local authentication system)
 router.post('/signup', authMiddleware.isNotSignedIn, authMiddleware.signUp);
 
+router.post('/sendmail', authMiddleware.sendAuthMail);
+
 /**
  * Kakao Authentication
  */

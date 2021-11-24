@@ -1,20 +1,20 @@
 /**
  * server.js
- * Last modified: 2021.10.13
- * Author: Lee Hong Jun
- * Description: Express web server
+ * Last modified: 2021.11.18
+ * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
+ * Description: Web server based on express module
  */
 
 /* Web Server Modules */
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
-const nunjucks = require('nunjucks');
 const cors = require('cors');
+const nunjucks = require('nunjucks');
 
-/* Security modules */
-require('dotenv').config();
+/* Security & auth modules */
 const helmet = require('helmet');
 const hpp = require('hpp');
 const passport = require('passport');
@@ -31,9 +31,12 @@ const voteRouter = require('@src/routes/voteRouter');
 const uploadRouter = require('@src/routes/uploadRouter');
 const errorRouter = require('@src/routes/errorRouter');
 
+/* Variables */
+const expressPort = process.env.EXPRESS_PORT;
+
 /**
  * @class ExpressServer
- * @description Express web server
+ * @description Web server class based on express module
  */
 class ExpressServer {
     /**
@@ -45,20 +48,14 @@ class ExpressServer {
     }
 
     /**
-     * @async @function init
+     * @function init
      * @description Initialize the express app.
      *
-     * @param {boolean} secure Type of express server. (false: http, true: https)
-     * @example
-     * const secure = serverType === 'https' ? true : false;
-     * const expressServer = new ExpressServer();
-     * expressServer.init(secure);
-     * ...
+     * @param {string} type Type of express server. express, http -> not secure, https, http2 -> secure
      */
-    init(secure = false) {
-        if (typeof secure !== 'boolean') {
-            secure = false;
-        }
+    init(type) {
+        let secure = false;
+        if (type === 'https' || type === 'http2') secure = true;
 
         // create express app instance
         this.app = express();
@@ -122,9 +119,21 @@ class ExpressServer {
         // routers
         this.app.use('/', pageRouter);
         this.app.use('/auth', authRouter);
-        this.app.use('/upload', uploadRouter);
         this.app.use('/vote', voteRouter);
+        this.app.use('/upload', uploadRouter);
         this.app.use(errorRouter);
+    }
+
+    /**
+     * @function run
+     * @description Run the express server.
+     */
+    run() {
+        if (this.app === null) throw new Error('Need to initialize the express server.');
+
+        this.app.listen(expressPort, () => {
+            logger.info(`Express server running on port [${expressPort}]`);
+        });
     }
 }
 

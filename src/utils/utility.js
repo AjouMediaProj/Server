@@ -1,6 +1,6 @@
 /**
  * utility.js
- * Last modified: 2021.10.18
+ * Last modified: 2021.11.24
  * Author: Lee Hong Jun (Onggae22, hong3883@naver.com)
  * Description: utility.js has many utility functions.
  */
@@ -106,93 +106,15 @@ class Utility {
         }
     }
 
+    /**
+     * @function isObject
+     * @description Check the value is object
+     *
+     * @param {object} obj Input object value.
+     * @returns {boolean} If the argument is valid object, return true. Else, return false.
+     */
     isObject(obj) {
         return typeof obj === 'object' && obj !== null;
-    }
-
-    /**
-     * @function compareType
-     * @description Compare the types of two objects.
-     *              If the two objects have the same property, return true.
-     *
-     * @param obj1 object 1.
-     * @param obj2 object 2.
-     * @returns {boolean}
-     * @example
-     * const obj1 = { a: 1, b: 2, c: { d: 5, e: 7 } };
-     * const obj2 = { a: 1, b: null, c: { d: 'abcd', e: 7 } };
-     * const obj3 = { a: 1, b: 3, c: 5 }
-     *
-     * compareType(obj1, obj2) -> true
-     * compareType(obj1, obj3) -> false
-     */
-    compareType(obj1, obj2) {
-        if (Object.keys(obj1).length !== Object.keys(obj2).length) {
-            return false;
-        }
-
-        for (let key in obj1) {
-            if (obj2.hasOwnProperty(key)) {
-                let isObjCnt = 0;
-                isObjCnt += this.isObject(obj1[key]) ? 1 : 0;
-                isObjCnt += this.isObject(obj1[key]) ? 1 : 0;
-
-                if (isObjCnt == 1) {
-                    return false;
-                }
-
-                if (isObjCnt == 2) {
-                    if (!this.compareType(obj1[key], obj2[key])) {
-                        return false;
-                    }
-                }
-            } else {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @function equals
-     * @description Both objects have the same property, and if the values are the same, return true.
-     *
-     * @param obj1 object 1.
-     * @param obj2 object 2.
-     * @returns {boolean}
-     * @example
-     * const obj1 = { a: 1, b: 2, c: 5};
-     * const obj2 = { a: 1, b: 2, c: 5};
-     * const obj3 = { a: 1, c: 5};
-     * equals(obj1, obj2) -> true
-     * equals(obj1, obj3) -> false
-     */
-    equals(obj1, obj2) {
-        const keys1 = Object.keys(obj1);
-        const keys2 = Object.keys(obj2);
-
-        if (keys1.length !== keys2.length) {
-            return false;
-        }
-
-        for (let key of keys1) {
-            const val1 = obj1[key];
-            const val2 = obj2[key];
-            const areBothObj = this.isObject(val1) && this.isObject(val2);
-
-            if (areBothObj) {
-                if (!this.equals(val1, val2)) {
-                    return false;
-                }
-            } else {
-                if (val1 !== val2) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -209,8 +131,13 @@ class Utility {
      */
     merge(src, dest) {
         if (!this.isObject(src) && !this.isObject(dest)) {
+            return;
+        }
+
+        if (src === null || dest === null) {
             return false;
         }
+
         for (let key in src) {
             if (dest.hasOwnProperty(key)) {
                 dest[key] = src[key];
@@ -224,15 +151,15 @@ class Utility {
      * @function clone
      * @description clone the base object and initialize based on the initDataObj.
      *
-     * @param baseObj Base object.
-     * @param initDataObj Init data object.
+     * @param {object} baseObj Base object.
+     * @param {object} initDataObj Init data object.
      * @returns {object} Clone object.
      * @example
      * const baseObject = { a: null, b: null, c: null };
      * const initDataObj = { a: 10, b: 'hi' };
      * clone(baseObject, initDataObj) -> { a: 10, b: 'hi', c: null }
      */
-    clone(baseObj, initDataObj) {
+    clone(baseObj, initDataObj = null) {
         let cloneObj = cloneDeep(baseObj);
 
         if (initDataObj !== null) {
@@ -241,6 +168,13 @@ class Utility {
         return cloneObj;
     }
 
+    /**
+     * @function requestHTTP
+     * @description Check the object is valid JSON object.
+     *
+     * @param {string} uri Uri to send the response.
+     * @returns {Promise<Response>}
+     */
     async requestHTTP(uri) {
         let rtn = null;
         try {
@@ -257,6 +191,13 @@ class Utility {
         }
     }
 
+    /**
+     * @function requestHTTP
+     * @description Check the object is valid JSON object.
+     *
+     * @param {string} uri Input object.
+     * @returns {boolean} If obj is valid JSON object, return true. Else, return false.
+     */
     routerSend(res, data) {
         this.loadLogger.info(data);
 
@@ -266,6 +207,13 @@ class Utility {
         res.send(rtn);
     }
 
+    /**
+     * @function requestHTTP
+     * @description Check the object is valid JSON object.
+     *
+     * @param {string} uri Input object.
+     * @returns {boolean} If obj is valid JSON object, return true. Else, return false.
+     */
     routerError(res, data) {
         this.loadLogger.error(data);
 
@@ -275,6 +223,13 @@ class Utility {
         res.send(rtn);
     }
 
+    /**
+     * @function requestHTTP
+     * @description Check the object is valid JSON object.
+     *
+     * @param {string} uri Input object.
+     * @returns {boolean} If obj is valid JSON object, return true. Else, return false.
+     */
     convertToTimestamp(timestring, milisec = false) {
         return milisec ? new Date(timestring).getTime() : new Date(timestring).getTime() / 1000;
     }
