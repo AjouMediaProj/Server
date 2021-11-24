@@ -11,18 +11,14 @@ const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
 const encryption = require('@src/utils/encryption');
 
-/* Variables */
+/* Base User object */
 const baseUserObject = {
-    uid: null,
+    idx: null,
     name: null,
     nickname: null,
-    age: null,
-    gender: null,
-    birthday: null,
+    major: null,
     accessLevel: 0,
 };
-
-let userModel = null;
 
 /**
  * @class UserManager

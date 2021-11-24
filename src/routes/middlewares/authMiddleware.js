@@ -8,6 +8,7 @@
 /* Modules */
 require('dotenv').config();
 const passport = require('passport');
+const mailer = require('@src/utils/mailer');
 const accountManager = require('@src/database/managers/accountManager');
 const logger = require('@src/utils/logger');
 
@@ -130,6 +131,26 @@ class AuthMiddleware {
             next();
         } else {
             res.redirect(`/?error='You are currently logged in.'`);
+        }
+    }
+
+    /**
+     *
+     */
+    async sendAuthMail(req, res) {
+        const email = req.body.email;
+        if (email === undefined) {
+            logger.info('Fail to send auth mail: email property is undefined');
+            res.sendStatus(404);
+        } else {
+            const result = await mailer.sendAuthMail(email);
+            if (result) {
+                logger.info('Success to send auth mail');
+                res.sendStatus(200);
+            } else {
+                logger.info('Fail to send auth mail: mailer.sendAuthMail() returns false');
+                res.sendStatus(404);
+            }
         }
     }
 }

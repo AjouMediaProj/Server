@@ -7,9 +7,27 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Http",
+            "name": "Launch express",
+            "program": "${workspaceFolder}/src/index.js",
+            "args": ["express"],
+            "skipFiles": ["<node_internals>/**/*.js"],
+            "runtimeArgs": ["--inspect"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch http",
             "program": "${workspaceFolder}/src/index.js",
             "args": ["http"],
+            "skipFiles": ["<node_internals>/**/*.js"],
+            "runtimeArgs": ["--inspect"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch test",
+            "program": "${workspaceFolder}/src/index.js",
+            "args": ["test"],
             "skipFiles": ["<node_internals>/**/*.js"],
             "runtimeArgs": ["--inspect"]
         }

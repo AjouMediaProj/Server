@@ -40,10 +40,13 @@ router.post('/local/sendfile', uploadMiddleware.localUploader.fields([{ name: 'i
  * AWS S3 Uploader
  */
 
-/* GET */
-
 /* POST */
-router.post('/img', authMiddleware.isSignedIn, uploadMiddleware.awsUploader.single('img'), uploadMiddleware.uploadToAWS);
+
+// '/upload/single_img': Send a single image file to server (using the aws upload (multer) system.)
+router.post('/single_img', uploadMiddleware.awsUploader.single('img'), uploadMiddleware.uploadSingleImgToAWS);
+
+// '/upload/multi_img': Send multi files (two) to server (using the aws upload (multer) system.)
+router.post('/multi_img', uploadMiddleware.awsUploader.fields([{ name: 'img1' }, { name: 'img2' }]), uploadMiddleware.uploadMultiImgToAWS);
 
 /* Export the router as module */
 module.exports = router;
