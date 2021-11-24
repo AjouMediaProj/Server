@@ -16,7 +16,6 @@ const router = express.Router();
 
 /* All Requests */
 router.use(utilsMiddleware.makeError); // 'Excuted All requests': If the URI resource is not defined on the server, Make 404 Error.
-
 router.use(utilsMiddleware.showError); // 'Excuted all requests': Show Error to client.
 
 /* Export the router as module */

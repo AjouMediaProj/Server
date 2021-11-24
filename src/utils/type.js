@@ -14,8 +14,7 @@ const utility = require('@src/utils/utility');
  *
  * [ Constants ]
  *
- */
-/**
+ * ----------------------------------------------------
  *
  * @typedef {object} QueryType
  * @property {number} create 0, INSERT INTO
@@ -23,6 +22,26 @@ const utility = require('@src/utils/utility');
  * @property {number} findAll 2, SELECT FROM
  * @property {number} update 3, UPDATE SET
  * @property {number} delete 4, DELETE FROM
+ *
+ * ----------------------------------------------------
+ *
+ * @typedef {object} CandidateStatus
+ * @property {number} default 0
+ * @property {number} deleted 1
+ *
+ * ----------------------------------------------------
+ *
+ * @typedef {object} VoteStatus
+ * @property {number} default 0
+ * @property {number} deleted 1
+ *
+ * ----------------------------------------------------
+ *
+ * @typedef {object} VoteRecordStatus
+ * @property {number} default 0
+ * @property {number} verified 1
+ *
+ * ----------------------------------------------------
  */
 const QueryType = {
     create: 0,
@@ -32,50 +51,98 @@ const QueryType = {
     delete: 4,
 };
 
+const CandidateStatus = {
+    default: 0,
+    deleted: 1,
+};
+
+const VoteStatus = {
+    default: 0,
+    deleted: 1,
+};
+
+const VoteRecordStatus = {
+    default: 0,
+    verified: 1,
+};
+
 /**
  *
  * [ Objects ]
  *
- */
-/**
+ * ----------------------------------------------------
+ *
  * @typedef {object} QueryObject
  * @property {string} modelName Specific model name
- * @property {number} type query type
+ * @property {number} type query type (based on Type.QueryType)
  * @property {object} conditions query conditions
  * @property {object} data query data
- */
-
-/**
+ *
+ * ----------------------------------------------------
+ *
  * @typedef {object} AccountObject
  * @property {number} idx Account index
  * @property {string} email Account email
  * @property {string} password Account password
  * @property {string} salt Account salt
- */
-
-/**
+ * ----------------------------------------------------
+ *
  * @typedef {object} UserObject
  * @property {number} idx User index
  * @property {string} name User name
  * @property {string} nickname User nickname
  * @property {string} major User major
- * @property {string} accessLevel User accessLevel
- */
-
-/**
- *  @typedef {object} AuthMailObject
+ * @property {string} accessLevel User accessLeve
+ *
+ * ----------------------------------------------------
+ *
+ * @typedef {object} AuthMailObject
  * @property {string} email User authentication email
  * @property {string} authCode User authentication code
  * @property {string} expirationDate Authentication email expiration date
+ *
+ * ----------------------------------------------------
+ *
+ * @typedef {object} CandidateObject
+ * @property {number} idx
+ * @property {number} voteIdx
+ * @property {string} name
+ * @property {string} photo
+ * @property {string} img
+ * @property {number} count
+ * @property {number} status Candidate status (based on Type.CandidateStatus)
+ *
+ * ----------------------------------------------------
+ *
+ * @typedef {object} VoteObject
+ * @property {number} idx Vote index from contract.
+ * @property {number} category Category type. Defined in file.
+ * @property {string} name Vote name
+ * @property {number} totalCount Total count of vote
+ * @property {string} startTime Vote startTime
+ * @property {string} endTime Vote endTime
+ * @property {number} status Vote status (based on Type.VoteStatus)
+ *
+ * ----------------------------------------------------
+ *
+ * @typedef {object} VoteRecordObject
+ * @property {number} voteIdx Vote index
+ * @property {number} userIdx User index
+ * @property {number} status Vote record status (based on Type.VoteRecordStatus)
+ *
+ * ----------------------------------------------------
  */
 
 const Objects = {
+    // Object for database
     Query: {
         modelName: '',
         type: 0,
         conditions: {},
         data: {},
     },
+
+    // Objects for user
     Account: {
         idx: null,
         email: null,
@@ -94,6 +161,33 @@ const Objects = {
         authCode: '',
         expirationDate: '',
     },
+
+    //Objects for vote
+    Candidate: {
+        idx: 0,
+        voteIdx: 0,
+        name: '',
+        photo: '',
+        img: '',
+        count: 0,
+        status: 0,
+    },
+
+    Vote: {
+        idx: 0,
+        category: 0,
+        name: '',
+        totalCount: 0,
+        startTime: '',
+        endTime: '',
+        status: 0,
+    },
+
+    VoteRecord: {
+        voteIdx: 0,
+        userIdx: 0,
+        status: 0,
+    },
 };
 
 /**
@@ -107,8 +201,32 @@ class Type {
      * @getter Get query type.
      * @returns {QueryType}
      */
-    static get queryType() {
+    static get QueryType() {
         return QueryType;
+    }
+
+    /**
+     * @getter Get candidate status.
+     * @returns {CandidateStatus}
+     */
+    static get CandidateStatus() {
+        return CandidateStatus;
+    }
+
+    /**
+     * @getter Get candidate status.
+     * @returns {VoteStatus}
+     */
+    static get VoteStatus() {
+        return VoteStatus;
+    }
+
+    /**
+     * @getter Get candidate status.
+     * @returns {VoteRecordStatus}
+     */
+    static get VoteRecordStatus() {
+        return VoteRecordStatus;
     }
 
     /**

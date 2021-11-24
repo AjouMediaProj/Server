@@ -1,6 +1,6 @@
 /**
  * mailer.js
- * Last modified: 2021.11.22
+ * Last modified: 2021.11.24
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: mailer.js can be used to send e-mail to users.
  */
@@ -12,10 +12,9 @@ const nodeMailer = require('nodemailer');
 const path = require('path');
 
 /* Custom modules */
+const db = require('@src/database/database2');
 const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
-const encryption = require('@src/utils/encryption');
-const db = require('@src/database/database2');
 const Type = require('@src/utils/type');
 
 /* config */
@@ -63,6 +62,7 @@ class Mailer {
      * @description Send authentication e-mail to destination.
      *
      * @param {string} dest Destination for sending authentication e-mail. (ex. user's e-mail address)
+     * @returns {boolean} Result of mailer.
      */
     async sendAuthMail(dest) {
         let result = false;
@@ -93,9 +93,6 @@ class Mailer {
                 await this.sendMail(dest, 'Blote authentication code', mail);
                 result = true;
             }
-
-            q.type = Type.queryType.find;
-            console.log((await db.execQuery(q)).dataValues);
         } catch (err) {
             logger.error(err);
         } finally {
