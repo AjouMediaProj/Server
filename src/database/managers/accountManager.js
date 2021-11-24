@@ -10,17 +10,8 @@ const BaseManager = require('@src/database/managers/baseManager');
 const logger = require('@src/utils/logger');
 const encryption = require('@src/utils/encryption');
 const utility = require('@src/utils/utility');
-
-/* Base Account Object */
-let baseAccountObject = {
-    idx: null,
-    email: null,
-    password: null,
-    salt: null,
-};
-
-/* Sequelize 'Account' model */
-let accountModel = null;
+const Type = require('@src/utils/type');
+const db = require('@src/database/database2');
 
 /**
  * @class AccountManager @extends BaseManager
@@ -33,6 +24,25 @@ class AccountManager extends BaseManager {
      */
     constructor() {
         super();
+    }
+
+    /**
+     *
+     * @param {*} email
+     * @returns
+     */
+    async findAccountByEmail(email) {
+        let result = null;
+        const q = db.models.Account.makeQuery(Type.QueryType.create);
+        q.conditions.where = { email };
+
+        try {
+            result = await db.execQuery(q);
+        } catch (err) {
+            logger.error(err);
+        } finally {
+            return result;
+        }
     }
 }
 

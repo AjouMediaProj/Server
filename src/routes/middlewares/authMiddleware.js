@@ -11,6 +11,7 @@ const passport = require('passport');
 const mailer = require('@src/utils/mailer');
 const accountManager = require('@src/database/managers/accountManager');
 const logger = require('@src/utils/logger');
+const db = require('@src/database/database2');
 
 /**
  * @class AuthMiddleware
@@ -63,13 +64,12 @@ class AuthMiddleware {
      * @param {function} next Next function.
      */
     async signUp(req, res, next) {
-        const initDataObj = {
-            email: req.body.email,
-            password: req.body.password,
-        };
+        const email = req.body.email;
+        const password = req.body.password;
 
         try {
             const user = await accountManager.findAccountByEmail(req.body.email);
+
             if (user) {
                 return res.redirect('/join?error=exist');
             }

@@ -91,24 +91,24 @@ class Database {
             if (t) q.conditions.transaction = t;
 
             switch (q.type) {
-                case Type.queryType.create:
+                case Type.QueryType.create:
                     if (t) result = await model.create(q.data, { transaction: t });
                     else result = await model.create(q.data);
                     break;
 
-                case Type.queryType.findOne:
+                case Type.QueryType.findOne:
                     result = await model.findOne(q.conditions);
                     break;
 
-                case Type.queryType.findAll:
+                case Type.QueryType.findAll:
                     result = await model.findAll(q.conditions);
                     break;
 
-                case Type.queryType.update:
+                case Type.QueryType.update:
                     result = await model.update(q.data, q.conditions);
                     break;
 
-                case Type.queryType.delete:
+                case Type.QueryType.delete:
                     result = await model.destroy(q.conditions);
                     break;
 

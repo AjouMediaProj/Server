@@ -69,7 +69,7 @@ class WebService {
 
             // Initialize the database & contract
             if (serviceType !== 'test') {
-                await db.init(true, false);
+                await db.init(false, false);
                 contract.init();
             }
         } catch (err) {

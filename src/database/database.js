@@ -11,7 +11,7 @@ const Sequelize = require('sequelize');
 const logger = require('@src/utils/logger');
 
 /* Models */
-const Account = require('@src/database/models/account2');
+const Account = require('@src/database/models/account');
 const User = require('@src/database/models/user');
 const Candidate = require('@src/database/models/candidate');
 const Vote = require('@src/database/models/vote');

@@ -11,15 +11,6 @@ const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
 const encryption = require('@src/utils/encryption');
 
-/* Base User object */
-const baseUserObject = {
-    idx: null,
-    name: null,
-    nickname: null,
-    major: null,
-    accessLevel: 0,
-};
-
 /**
  * @class UserManager
  * @description

@@ -76,18 +76,17 @@ class Mailer {
 
             // make query object
             const q = db.models.AuthMail.makeQuery();
-            q.type = Type.queryType.find;
+            q.type = Type.QueryType.findOne;
             q.conditions.where = { email: dest };
             q.data = authMailObj;
 
             if (await db.execQuery(q)) {
                 // Auth mail already exist in db. (update it)
-                q.type = Type.queryType.update;
+                q.type = Type.QueryType.update;
             } else {
                 // Auth mail doesn't exist in db. (create new one)
-                q.type = Type.queryType.create;
+                q.type = Type.QueryType.create;
             }
-
             if (await db.execQuery(q)) {
                 const mail = await ejs.renderFile(path.join(__dirname, '/authMail.ejs'), authMailObj);
                 await this.sendMail(dest, 'Blote authentication code', mail);
