@@ -1,6 +1,6 @@
 /**
  * passportConfig.js
- * Last modified: 2021.10.16
+ * Last modified: 2021.12.01
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Initialize the passport configurations.
  */
@@ -9,10 +9,10 @@
 require('dotenv').config();
 const passport = require('passport');
 const strategy = require('@src/passport/strategy');
-const accountManager = require('@src/database/managers/accountManager');
 
-/* Utils */
+const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
+const authManager = require('@src/database/managers/authManager');
 
 /**
  * @class PassportConfig
@@ -27,16 +27,16 @@ class PassportConfig {
      * Set up the serializeUser, deserializeUser, local strategy and kakao strategy.
      */
     init() {
-        // Run only when user sign in web service. (save user information object as ID in session)
+        // Run only when user sign in the web service. (save user information object as ID in session)
         // If you save all user information in session, the capacity of the session increases, so save only id.
         passport.serializeUser((user, done) => {
             done(null, user.email);
         });
 
-        // Execute every request (recall the user information object through the ID saved in the session)
+        // Execute per every request. passport.session calls this method. (recall the user information object through the ID saved in the session)
         passport.deserializeUser(async (email, done) => {
             try {
-                const user = await accountManager.findAccountByEmail(email);
+                const user = await authManager.findAccountByEmail(email);
                 done(null, user);
             } catch (err) {
                 logger.error(err);

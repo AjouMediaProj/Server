@@ -1,6 +1,6 @@
 /**
  * type.js
- * Last modified: 2021.11.23
+ * Last modified: 2021.11.29
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Define the types of various basic objects.
  */
@@ -8,112 +8,231 @@
 /* Modules */
 const utility = require('@src/utils/utility');
 
-/*** <--- Type Definition --- > ***/
-
 /**
  *
- * [ Constants ]
- *
+ * ----------------- [ Constants ] ---------------------
+ */
+
+/**
  * ----------------------------------------------------
- *
- * @typedef {object} QueryType
- * @property {number} create 0, INSERT INTO
- * @property {number} findOne 1, SELECT FROM
- * @property {number} findAll 2, SELECT FROM
- * @property {number} update 3, UPDATE SET
- * @property {number} delete 4, DELETE FROM
- *
- * ----------------------------------------------------
- *
- * @typedef {object} CandidateStatus
- * @property {number} default 0
- * @property {number} deleted 1
- *
- * ----------------------------------------------------
- *
- * @typedef {object} VoteStatus
- * @property {number} default 0
- * @property {number} deleted 1
- *
- * ----------------------------------------------------
- *
- * @typedef {object} VoteRecordStatus
- * @property {number} default 0
- * @property {number} verified 1
- *
+ * @typedef {object} HttpStatus
+    // 2XX: Successful
+    @property {number} OK: 200,
+    @property {number} Created: 201,
+    @property {number} Accepted: 202,
+    @property {number} NonAuthoritativeInformation: 203,
+    @property {number} NoContent: 204,
+
+    // 3XX: Redirection
+    @property {number} MovedPermanently: 301,
+    @property {number} Found: 302,
+    @property {number} SeeOther: 303,
+    @property {number} NotModified: 304,
+    @property {number} UseProxy: 305,
+    @property {number} Unused: 306,
+    @property {number} TemporaryRedirect: 307,
+
+    // 4XX: Client Error
+    @property {number} BadRequest: 400,
+    @property {number} Unauthorized: 401,
+    @property {number} PaymentRequired: 402,
+    @property {number} Forbidden: 403,
+    @property {number} NotFound: 404,
+    @property {number} MethodNotAllowed: 405,
+    @property {number} NotAcceptable: 406,
+    @property {number} ProxyAuthenticationRequired: 407,
+    @property {number} RequestTimeout: 408,
+    @property {number} Conflict: 409,
+
+    // 5XX: Server Error
+    @property {number} InternalServerError: 500,
+    @property {number} NotImplemented: 501,
  * ----------------------------------------------------
  */
-const QueryType = {
+const HttpStatus = Object.freeze({
+    // 2XX: Successful
+    OK: 200,
+    Created: 201,
+    Accepted: 202,
+    NonAuthoritativeInformation: 203,
+    NoContent: 204,
+
+    // 3XX: Redirection
+    MovedPermanently: 301,
+    Found: 302,
+    SeeOther: 303,
+    NotModified: 304,
+    UseProxy: 305,
+    Unused: 306,
+    TemporaryRedirect: 307,
+
+    // 4XX: Client Error
+    BadRequest: 400,
+    Unauthorized: 401,
+    PaymentRequired: 402,
+    Forbidden: 403,
+    NotFound: 404,
+    MethodNotAllowed: 405,
+    NotAcceptable: 406,
+    ProxyAuthenticationRequired: 407,
+    RequestTimeout: 408,
+    Conflict: 409,
+
+    // 5XX: Server Error
+    InternalServerError: 500,
+    NotImplemented: 501,
+});
+
+/**
+ * ----------------------------------------------------
+ * @typedef {object} QueryMethods
+ * @property {number} create 0
+ * @property {number} findOne 1
+ * @property {number} findAll 2
+ * @property {number} update 3
+ * @property {number} delete 4
+ * ----------------------------------------------------
+ */
+const QueryMethods = Object.freeze({
     create: 0,
     findOne: 1,
     findAll: 2,
     update: 3,
     delete: 4,
-};
+});
 
-const CandidateStatus = {
+/**
+ * ----------------------------------------------------
+ * @typedef {object} CandidateStatus
+ * @property {number} default 0
+ * @property {number} deleted 1
+ * ----------------------------------------------------
+ */
+const CandidateStatus = Object.freeze({
     default: 0,
     deleted: 1,
-};
+});
 
-const VoteStatus = {
+/**
+ * ----------------------------------------------------
+ * @typedef {object} VoteStatus
+ * @property {number} default 0
+ * @property {number} deleted 1
+ * ----------------------------------------------------
+ */
+const VoteStatus = Object.freeze({
     default: 0,
     deleted: 1,
-};
+});
 
-const VoteRecordStatus = {
+/**
+ * ----------------------------------------------------
+ * @typedef {object} VoteRecordStatus
+ * @property {number} default 0
+ * @property {number} verified 1
+ * ----------------------------------------------------
+ */
+const VoteRecordStatus = Object.freeze({
     default: 0,
     verified: 1,
-};
+});
 
 /**
  *
- * [ Objects ]
- *
+ * ----------------- [ Objects ] ---------------------
+ */
+
+/**
  * ----------------------------------------------------
- *
  * @typedef {object} QueryObject
- * @property {string} modelName Specific model name
- * @property {number} type query type (based on Type.QueryType)
- * @property {object} conditions query conditions
- * @property {object} data query data
- *
+ * @property {string} model Specific model name
+ * @property {number} method Specific query method (type.QueryMethods)
+ * @property {object} conditions Query conditions
+ * @property {object} data Query data
  * ----------------------------------------------------
- *
+ */
+const QueryObject = Object.freeze({
+    model: '',
+    method: 0,
+    data: null,
+    conditions: {},
+});
+
+/**
+ * ----------------------------------------------------
  * @typedef {object} AccountObject
  * @property {number} idx Account index
  * @property {string} email Account email
  * @property {string} password Account password
  * @property {string} salt Account salt
  * ----------------------------------------------------
- *
+ */
+const AccountObject = Object.freeze({
+    idx: 0,
+    email: '',
+    password: '',
+    salt: '',
+});
+
+/**
+ * ----------------------------------------------------
  * @typedef {object} UserObject
  * @property {number} idx User index
  * @property {string} name User name
- * @property {string} nickname User nickname
- * @property {string} major User major
- * @property {string} accessLevel User accessLeve
- *
+ * @property {number} studentID User student id
+ * @property {number} major User major
+ * @property {number} accessLevel User accessLevel
  * ----------------------------------------------------
- *
+ */
+
+const UserObject = Object.freeze({
+    idx: 0,
+    name: '',
+    studentID: 0,
+    major: 0,
+    accessLevel: 0,
+});
+
+/**
+ * ----------------------------------------------------
  * @typedef {object} AuthMailObject
  * @property {string} email User authentication email
  * @property {string} authCode User authentication code
  * @property {string} expirationDate Authentication email expiration date
- *
  * ----------------------------------------------------
- *
+ */
+const AuthMailObject = Object.freeze({
+    email: '',
+    authCode: '',
+    expirationDate: '',
+});
+
+/**
+ * ----------------------------------------------------
  * @typedef {object} CandidateObject
- * @property {number} idx
- * @property {number} voteIdx
- * @property {string} name
- * @property {string} photo
- * @property {string} img
- * @property {number} count
+ * @property {number} idx Candidate index
+ * @property {number} voteIdx Vote index
+ * @property {string} name Candidate name
+ * @property {string} photo Candidate's profile photo
+ * @property {string} img Candidate's election promise (image)
+ * @property {string} txt Candidate's election promise (string)
+ * @property {number} count Candidate's the number of votes.
  * @property {number} status Candidate status (based on Type.CandidateStatus)
- *
  * ----------------------------------------------------
- *
+ */
+const CandidateObject = Object.freeze({
+    idx: 0,
+    voteIdx: 0,
+    name: '',
+    photo: '',
+    img: '',
+    txt: '',
+    count: 0,
+    status: CandidateStatus.default,
+});
+
+/**
+ * ----------------------------------------------------
  * @typedef {object} VoteObject
  * @property {number} idx Vote index from contract.
  * @property {number} category Category type. Defined in file.
@@ -122,131 +241,231 @@ const VoteRecordStatus = {
  * @property {string} startTime Vote startTime
  * @property {string} endTime Vote endTime
  * @property {number} status Vote status (based on Type.VoteStatus)
- *
  * ----------------------------------------------------
- *
+ */
+const VoteObject = Object.freeze({
+    idx: 0,
+    category: 0,
+    name: '',
+    totalCount: 0,
+    startTime: '',
+    endTime: '',
+    status: VoteStatus.default,
+});
+
+/**
+ * ----------------------------------------------------
  * @typedef {object} VoteRecordObject
  * @property {number} voteIdx Vote index
  * @property {number} userIdx User index
  * @property {number} status Vote record status (based on Type.VoteRecordStatus)
- *
  * ----------------------------------------------------
  */
-
-const Objects = {
-    // Object for database
-    Query: {
-        modelName: '',
-        type: 0,
-        conditions: {},
-        data: {},
-    },
-
-    // Objects for user
-    Account: {
-        idx: null,
-        email: null,
-        password: null,
-        salt: null,
-    },
-    User: {
-        idx: null,
-        name: null,
-        nickname: null,
-        major: null,
-        accessLevel: null,
-    },
-    AuthMail: {
-        email: '',
-        authCode: '',
-        expirationDate: '',
-    },
-
-    //Objects for vote
-    Candidate: {
-        idx: 0,
-        voteIdx: 0,
-        name: '',
-        photo: '',
-        img: '',
-        count: 0,
-        status: 0,
-    },
-
-    Vote: {
-        idx: 0,
-        category: 0,
-        name: '',
-        totalCount: 0,
-        startTime: '',
-        endTime: '',
-        status: 0,
-    },
-
-    VoteRecord: {
-        voteIdx: 0,
-        userIdx: 0,
-        status: 0,
-    },
-};
+const VoteRecordObject = Object.freeze({
+    voteIdx: 0,
+    userIdx: 0,
+    status: VoteRecordStatus.default,
+});
 
 /**
  * @class Type
  * @description
  */
 class Type {
-    /*** Static Properties  ***/
+    constructor() {}
 
     /**
-     * @getter Get query type.
-     * @returns {QueryType}
+     * ------------ [ Constants ] ----------------
      */
-    static get QueryType() {
-        return QueryType;
+    get HttpStatus() {
+        return HttpStatus;
+    }
+
+    /**
+     * @getter Get Query method object
+     * @returns {QueryMethods} Base QueryMethods object (readonly)
+     */
+    get QueryMethods() {
+        return QueryMethods;
     }
 
     /**
      * @getter Get candidate status.
-     * @returns {CandidateStatus}
+     * @returns {CandidateStatus} Base CandidateStatus object (readonly)
      */
-    static get CandidateStatus() {
+    get CandidateStatus() {
         return CandidateStatus;
     }
 
     /**
-     * @getter Get candidate status.
-     * @returns {VoteStatus}
+     * @getter Get vote status.
+     * @returns {VoteStatus} Base VoteStatus object (readonly)
      */
-    static get VoteStatus() {
+    get VoteStatus() {
         return VoteStatus;
     }
 
     /**
-     * @getter Get candidate status.
-     * @returns {VoteRecordStatus}
+     * @getter Get vote record status.
+     * @returns {VoteRecordStatus} Base VoteRecordStatus object (readonly)
      */
-    static get VoteRecordStatus() {
+    get VoteRecordStatus() {
         return VoteRecordStatus;
     }
 
     /**
-     * @function makeObject
-     * @description Clone new object.
-     *
-     * @param {string} name Object name (QueryObject -> 'Query', AccountObject -> 'Account')
-     * @returns {object} new object
+     * ------------ [ QueryObject ] ----------------
      */
-    static makeObject(name) {
-        const obj = Objects[name];
-
-        if (obj === undefined) return null;
-        else return utility.clone(obj);
+    /**
+     * @getter Get query object
+     * @returns {QueryObject} Base query object (readonly)
+     */
+    get QueryObject() {
+        return QueryObject;
+    }
+    /**
+     * @function cloneQueryObject
+     * @description Clone query object
+     *
+     * @param {object} initData Data to initialize the object
+     * @returns {QueryObject} Base query object
+     */
+    cloneQueryObject(initData = null) {
+        return utility.clone(QueryObject, initData);
     }
 
-    /*** Static Methods ***/
+    /**
+     * ------------ [ AccountObject ] ----------------
+     */
+    /**
+     * @getter Get account object.
+     * @returns {AccountObject} Base account object (readonly)
+     */
+    get AccountObject() {
+        return AccountObject;
+    }
+    /**
+     * @function cloneAccountObject
+     * @description Clone account object.
+     *
+     * @param {object} initData Data to initialize the object
+     * @returns {AccountObject} Base account object
+     */
+    cloneAccountObject(initData = null) {
+        return utility.clone(AccountObject, initData);
+    }
 
     /**
-     * @static @function compareType
+     * ------------ [ UserObject ] ----------------
+     */
+    /**
+     * @getter Get user object.
+     * @returns {UserObject} Base user object (readonly)
+     */
+    get UserObject() {
+        return UserObject;
+    }
+    /**
+     * @function cloneUserObject
+     * @description Clone user object.
+     *
+     * @param {object} initData Data to initialize the object
+     * @returns {UserObject} Base user object
+     */
+    cloneUserObject(initData = null) {
+        return utility.clone(UserObject, initData);
+    }
+
+    /**
+     * ------------ [ AuthMailObject ] ----------------
+     */
+    /**
+     * @getter Get auth mail object.
+     * @returns {AuthMailObject} Base auth mail object (readonly)
+     */
+    get AuthMailObject() {
+        return AuthMailObject;
+    }
+    /**
+     * @function cloneAuthMailObject Clone auth mail object.
+     * @description Clone auth mail object.
+     *
+     * @param {object} initData Data to initialize the object
+     * @returns {AuthMailObject} Base auth mail object
+     */
+    cloneAuthMailObject(initData = null) {
+        return utility.clone(AuthMailObject, initData);
+    }
+
+    /**
+     * ------------ [ CandidateObject ] ----------------
+     */
+    /**
+     * @getter Get candidate object.
+     * @returns {CandidateObject} Base candidate object (readonly)
+     */
+    get CandidateObject() {
+        return CandidateObject;
+    }
+    /**
+     * @function cloneCandidateObject
+     * @description Clone candidate object.
+     *
+     * @param {object} initData Data to initialize the object
+     * @returns {CandidateObject} Base candidate object
+     */
+    cloneCandidateObject(initData = null) {
+        return utility.clone(CandidateObject, initData);
+    }
+
+    /**
+     * ------------ [ VoteObject ] ----------------
+     */
+    /**
+     * @getter Get vote object.
+     * @returns {VoteObject} Base vote object (readonly)
+     */
+    get VoteObject() {
+        return VoteObject;
+    }
+    /**
+     * @function cloneVoteObject Clone vote object.
+     * @description Clone vote object.
+     *
+     * @param {object} initData Data to initialize the object
+     * @returns {VoteObject} Base vote object
+     */
+    cloneVoteObject(initData = null) {
+        return utility.clone(VoteObject, initData);
+    }
+
+    /**
+     * ------------ [ VoteRecordObject ] ----------------
+     */
+    /**
+     * @getter Get vote record object.
+     * @returns {VoteRecordObject} Base vote record object (readonly)
+     */
+    get VoteRecordObject() {
+        return VoteRecordObject;
+    }
+    /**
+     * @function cloneVoteRecordObject
+     * @description Clone voteRecord object.
+     *
+     * @param {object} initData Data to initialize the object
+     * @returns {VoteRecordObject} Base vote record object
+     */
+    cloneVoteRecordObject(initData = null) {
+        return utility.clone(VoteRecordObject, initData);
+    }
+
+    /**
+     * -------------------- [ Methods ] ------------------------
+     */
+
+    /**
+     * @function compareType
      * @description Compare the types of two objects.
      *              If the two objects have the same property, return true.
      *
@@ -261,7 +480,7 @@ class Type {
      * compareType(obj1, obj2) -> true
      * compareType(obj1, obj3) -> false
      */
-    static compareType(obj1, obj2) {
+    compareType(obj1, obj2) {
         console.log(obj1);
         if (Object.keys(obj1).length !== Object.keys(obj2).length) {
             return false;
@@ -291,7 +510,7 @@ class Type {
     }
 
     /**
-     * @static @function equals
+     * @function equals
      * @description Both objects have the same property, and if the values are the same, return true.
      *
      * @param obj1 object 1.
@@ -304,7 +523,7 @@ class Type {
      * equals(obj1, obj2) -> true
      * equals(obj1, obj3) -> false
      */
-    static equals(obj1, obj2) {
+    equals(obj1, obj2) {
         const keys1 = Object.keys(obj1);
         const keys2 = Object.keys(obj2);
 
@@ -333,4 +552,4 @@ class Type {
 }
 
 /* Export class as module */
-module.exports = Type;
+module.exports = new Type();

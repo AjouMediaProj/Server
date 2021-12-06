@@ -7,15 +7,17 @@
 
 /* Node modules */
 require('dotenv').config();
+const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const http2 = require('http2');
 const http2Express = require('http2-express-bridge');
-const fs = require('fs');
 
 /* Custom modules */
 const ExpressServer = require('@src/core/expressServer');
+const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
+const utility = require('@src/utils/utility');
 
 /* Variables */
 const httpPort = process.env.HTTP_PORT;

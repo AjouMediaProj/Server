@@ -1,20 +1,19 @@
 /**
  * voteMiddleware.js
- * Last modified: 2021.11.03
+ * Last modified: 2021.12.06
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Various middleware callbacks used in Express server are defined.
  */
 
 /* Modules */
 require('dotenv').config();
+const { Request, Response, NextFunction } = require('express');
+const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
 
 /* Manager */
 const voteMgr = require('@src/database/managers/voteManager');
-const candidateMgr = require('@src/database/managers/candidateManager');
-const voteRecordMgr = require('@src/database/managers/voteRecordManager');
-
 const contract = require('@src/blockchain/contract');
 
 /**
@@ -24,6 +23,14 @@ const contract = require('@src/blockchain/contract');
 class VoteMiddleware {
     constructor() {}
 
+    /**
+     * @async
+     * @function getVoteList
+     * @description Get valid vote list from database
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
     async getVoteList(req, res) {
         const reqKeys = {};
         const resKeys = {
@@ -31,38 +38,41 @@ class VoteMiddleware {
         };
 
         try {
-            const resData = {};
-
             let rtn = [];
+            const resData = {};
+            const votes = await voteMgr.findValidVotes();
 
-            const votes = await voteMgr.findEnableVotes();
-            for (let i in votes) {
-                let item = votes[i].dataValues;
-                item.startTime = utility.convertToTimestamp(item.startTime);
-                item.endTime = utility.convertToTimestamp(item.endTime);
-
-                rtn.push(item);
+            for (let v of votes) {
+                rtn.push(v);
             }
 
             resData[resKeys.list] = rtn;
 
-            utility.routerSend(res, resData);
+            utility.routerSend(res, type.HttpStatus.OK, resData);
         } catch (err) {
-            utility.routerError(res, err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
         }
     }
 
+    /**
+     * @async
+     * @function addVote
+     * @description Add new vote to block chain & database
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
     async addVote(req, res) {
         const reqKeys = {
             category: 'category',
             voteName: 'voteName',
-            startTime: 'startTime',
-            endTime: 'endTime',
+            startTime: 'startTime', // sec
+            endTime: 'endTime', // sec
         };
         const resKeys = {
             idx: 'idx',
             category: 'category',
-            voteName: 'voteName',
+            voteName: 'name',
             totalCount: 'totalCount',
             startTime: 'startTime',
             endTime: 'endTime',
@@ -70,32 +80,41 @@ class VoteMiddleware {
         };
 
         try {
-            const resData = {};
+            // parse body data
             const body = req.body;
             const category = body[reqKeys.category];
             const voteName = body[reqKeys.voteName];
             const startTime = body[reqKeys.startTime];
             const endTime = body[reqKeys.endTime];
 
+            // add vote to block chain
             const rtn = await contract.addVote(voteName, startTime, endTime);
 
-            const voteObj = await voteMgr.makeVoteObj(Number(rtn.idx), category, voteName, startTime * 1000, endTime * 1000);
-            await voteMgr.create(voteObj);
+            const resData = type.cloneVoteObject();
+            resData[resKeys.idx] = Number(rtn.idx);
+            resData[resKeys.category] = category;
+            resData[resKeys.voteName] = voteName;
+            resData[resKeys.startTime] = startTime * 1000; // convert sec to milisec
+            resData[resKeys.endTime] = endTime * 1000; // convert sec to milisec
 
-            resData[resKeys.idx] = voteObj.idx;
-            resData[resKeys.category] = voteObj.category;
-            resData[resKeys.voteName] = voteObj.name;
-            resData[resKeys.totalCount] = voteObj.totalCount;
-            resData[resKeys.startTime] = voteObj.startTime / 1000;
-            resData[resKeys.endTime] = voteObj.endTime / 1000;
-            resData[resKeys.status] = voteObj.status;
+            // add vote to database
+            await voteMgr.registerVote(resData);
 
-            utility.routerSend(res, resData);
+            // send result to client
+            utility.routerSend(res, type.HttpStatus.Created, resData);
         } catch (err) {
-            utility.routerError(res, err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
         }
     }
 
+    /**
+     * @async
+     * @function addCandidate
+     * @description Add new candidate to block chain & client
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
     async addCandidate(req, res) {
         const reqKeys = {
             voteIdx: 'voteIdx',
@@ -106,6 +125,7 @@ class VoteMiddleware {
             candName: 'candName',
             photo: 'photo',
             img: 'img',
+            txt: 'txt',
         };
 
         try {
@@ -114,23 +134,41 @@ class VoteMiddleware {
             const voteIdx = body[reqKeys.voteIdx];
             const candName = body[reqKeys.candName];
 
+            // add candidate to block chain
             const rtn = await contract.addCandidate(voteIdx, candName);
 
             // @todo - Save Image, Insert DB(startTransaction ~ query)
-            const candObj = await candidateMgr.makeCandidateObj(Number(rtn.idx), voteIdx, candName, '', '');
-            await candidateMgr.create(candObj);
+            const candObj = type.cloneCandidateObject();
+            candObj.idx = Number(rtn.idx);
+            candObj.voteIdx = voteIdx;
+            candObj.name = candName;
+            candObj.photo = '';
+            candObj.img = '';
+            candObj.txt = '';
+
+            // add candidate to database
+            await voteMgr.registerCandidate(candObj);
 
             resData[resKeys.idx] = candObj.idx;
             resData[resKeys.candName] = candObj.name;
             resData[resKeys.photo] = candObj.photo;
             resData[resKeys.img] = candObj.img;
 
-            utility.routerSend(res, resData);
+            // send result to client
+            utility.routerSend(res, type.HttpStatus.Created, resData);
         } catch (err) {
-            utility.routerError(res, err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
         }
     }
 
+    /**
+     * @async
+     * @function vote
+     * @description
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
     async vote(req, res) {
         const reqKeys = {
             voteIdx: 'voteIdx',
@@ -148,27 +186,40 @@ class VoteMiddleware {
             const candIdx = Number(body[reqKeys.candIdx]);
             const renounce = body[reqKeys.renounce];
 
-            const userIdx = 2; // Temp Data
-            const result = await voteRecordMgr.findVoteRecord(voteIdx, userIdx);
-            if (result != null && result.status == voteRecordMgr.status.verified) {
-                throw 'error: user already voted';
+            const userIdx = req.user.idx;
+            const result = await voteMgr.findVoteRecord(voteIdx, userIdx);
+            if (result != null && result.status == type.VoteRecordStatus.verified) {
+                throw new Error('error: user already voted');
             }
 
-            const recordObj = await voteRecordMgr.makeVoteRecordObj(voteIdx, userIdx);
-            await voteRecordMgr.create(recordObj);
+            // add vote record to database
+            const recordObj = type.cloneVoteRecordObject();
+            recordObj.voteIdx = voteIdx;
+            recordObj.userIdx = userIdx;
+            await voteMgr.registerVoteRecord(recordObj);
 
+            // add new user's vote to block chain
             const rtn = await contract.vote(voteIdx, candIdx, renounce);
 
-            await voteRecordMgr.updateVoteRecord(voteIdx, userIdx, voteRecordMgr.status.verified);
+            // update vote record status (default -> verified)
+            await voteMgr.updateVoteRecordStatus(voteIdx, userIdx, type.VoteRecordStatus.verified);
 
+            // send result to client
             resData[resKeys.receipt] = rtn.receipt;
-
-            utility.routerSend(res, resData);
+            utility.routerSend(res, type.HttpStatus.Created, resData);
         } catch (err) {
-            utility.routerError(res, err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
         }
     }
 
+    /**
+     * @async
+     * @function getVoteOverview
+     * @description
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
     async getVoteOverview(req, res) {
         const reqKeys = {
             voteIdx: 'voteIdx',
@@ -188,23 +239,37 @@ class VoteMiddleware {
             const body = req.body;
             const voteIdx = body[reqKeys.voteIdx];
 
-            const voteData = await voteMgr.findVote(voteIdx);
-            const candidates = await candidateMgr.findCandidates(voteIdx);
+            // find vote & candidates from database
+            const voteData = await voteMgr.findVoteByIdx(voteIdx);
+            const candidates = await voteMgr.findCandidatesFromVote(voteIdx);
 
-            resData[resKeys.idx] = voteData.idx;
-            resData[resKeys.voteName] = voteData.name;
-            resData[resKeys.candidates] = candidates;
-            resData[resKeys.totalVoteCnt] = voteData.totalCount;
-            resData[resKeys.startTime] = voteData.startTime;
-            resData[resKeys.endTime] = voteData.endTime;
-            resData[resKeys.status] = voteData.status;
+            if (voteData) {
+                resData[resKeys.idx] = voteData.idx;
+                resData[resKeys.voteName] = voteData.name;
+                resData[resKeys.candidates] = candidates;
+                resData[resKeys.totalVoteCnt] = voteData.totalCount;
+                resData[resKeys.startTime] = voteData.startTime;
+                resData[resKeys.endTime] = voteData.endTime;
+                resData[resKeys.status] = voteData.status;
 
-            utility.routerSend(res, resData);
+                // send result to client
+                utility.routerSend(res, type.HttpStatus.OK, resData);
+            } else {
+                utility.routerSend(res, type.HttpStatus.NotFound);
+            }
         } catch (err) {
-            utility.routerError(res, err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
         }
     }
 
+    /**
+     * @async
+     * @function decodeVoteReceipt
+     * @description
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
     async decodeVoteReceipt(req, res) {
         const reqKeys = {
             transactionHash: 'transactionHash',
@@ -220,15 +285,17 @@ class VoteMiddleware {
             const body = req.body;
             const transactionHash = body[reqKeys.transactionHash];
 
+            // decode the vote receipt
             const decodedData = await contract.decodeVoteReceipt(transactionHash);
 
             resData[resKeys.voteIdx] = decodedData.voteIdx;
             resData[resKeys.candIdx] = decodedData.candIdx;
             resData[resKeys.renounce] = decodedData.renounce;
 
-            utility.routerSend(res, resData);
+            // send result to client
+            utility.routerSend(res, type.HttpStatus.OK, resData);
         } catch (err) {
-            utility.routerError(res, err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
         }
     }
 }

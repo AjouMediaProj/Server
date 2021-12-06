@@ -1,23 +1,13 @@
 /**
  * uploadRouter.js
- * Last modified: 2021.10.16
+ * Last modified: 2021.12.06
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Express router related to upload feature.
  */
 
 /* Modules */
-const fs = require('fs');
-const path = require('path');
-const multer = require('multer');
-const multerS3 = require('multer-s3');
 const express = require('express');
-const AWS = require('aws-sdk');
 const uploadMiddleware = require('@src/routes/middlewares/uploadMiddleware');
-const authMiddleware = require('@src/routes/middlewares/authMiddleware');
-
-/* Utils */
-const moment = require('moment');
-const logger = require('@src/utils/logger');
 
 /* Variables */
 const router = express.Router();

@@ -1,21 +1,21 @@
 /**
  * mailer.js
- * Last modified: 2021.11.24
+ * Last modified: 2021.12.06
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: mailer.js can be used to send e-mail to users.
  */
 
 /* Modules */
 const ejs = require('ejs');
+const path = require('path');
 const moment = require('moment');
 const nodeMailer = require('nodemailer');
-const path = require('path');
 
 /* Custom modules */
 const db = require('@src/database/database2');
+const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
-const Type = require('@src/utils/type');
 
 /* config */
 const config = require('@root/config/config');
@@ -34,17 +34,19 @@ class Mailer {
     }
 
     /**
-     * @async @function sendMail
+     * @async
+     * @function sendMail
      * @description send e-mail to destination.
      *
-     * @param {string} dest Destination for sending e-mail. (ex. user's e-mail address)
+     * @param {string} email Destination for sending e-mail. (ex. user's e-mail address)
      * @param {string} subject The title of the e-mail.
      * @param {string} html Html page to be displayed in e-mail.
+     * @throws {error}
      */
-    async sendMail(dest, subject, html) {
+    async sendMail(email, subject, html) {
         const mailOps = {
             from: config.mailer.auth.user,
-            to: dest,
+            to: email,
             subject,
             html,
         };
@@ -53,59 +55,64 @@ class Mailer {
             const info = await this.transporter.sendMail(mailOps);
             this.transporter.close();
         } catch (err) {
-            logger.error(err);
+            throw err;
         }
     }
 
     /**
-     * @async @function sendAuthMail
+     * @async
+     * @function sendAuthMail
      * @description Send authentication e-mail to destination.
      *
-     * @param {string} dest Destination for sending authentication e-mail. (ex. user's e-mail address)
-     * @returns {boolean} Result of mailer.
+     * @param {string} email Destination for sending authentication e-mail. (ex. user's e-mail address)
+     * @throws {error}
+     * @returns {number} Result of sending auth mail (http status code)
      */
-    async sendAuthMail(dest) {
-        let result = false;
+    async sendAuthMail(email) {
+        let result = 0;
 
         try {
             // make auth mail object
-            const authMailObj = db.models.AuthMail.makeObject();
-            authMailObj.email = dest;
+            const authMailObj = type.cloneAccountObject();
+            authMailObj.email = email;
             authMailObj.authCode = utility.createRandomCode(6);
             authMailObj.expirationDate = moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss');
 
-            // make query object
-            const q = db.models.AuthMail.makeQuery();
-            q.type = Type.QueryType.findOne;
-            q.conditions.where = { email: dest };
-            q.data = authMailObj;
+            // create or update auth mail
+            const q = db.getModel('AuthMail').makeQuery(type.QueryMethods.findOne, authMailObj, { where: { email } });
 
             if (await db.execQuery(q)) {
-                // Auth mail already exist in db. (update it)
-                q.type = Type.QueryType.update;
+                // alreay exist: update
+                q.method = type.QueryMethods.update;
             } else {
-                // Auth mail doesn't exist in db. (create new one)
-                q.type = Type.QueryType.create;
+                // doesn't exist: create
+                q.method = type.QueryMethods.create;
             }
+
+            // send auth mail to client
             if (await db.execQuery(q)) {
                 const mail = await ejs.renderFile(path.join(__dirname, '/authMail.ejs'), authMailObj);
-                await this.sendMail(dest, 'Blote authentication code', mail);
-                result = true;
+                await this.sendMail(email, 'Blote authentication code', mail);
+                result = type.HttpStatus.OK;
+            } else {
+                result = type.HttpStatus.BadRequest;
             }
         } catch (err) {
-            logger.error(err);
-        } finally {
-            return result;
+            throw err;
         }
+
+        return result;
     }
 
     /**
      * @async @function sendAuthMail_test
      * @description Send authentication e-mail to destination. (test version)
      *
-     * @param {string} dest Destination for sending authentication e-mail. (ex. user's e-mail address)
+     * @param {string} email Destination for sending authentication e-mail. (ex. user's e-mail address)
+     * @throws {error}
+     * @returns {boolean} Result of mailer.
      */
-    async sendAuthMail_test(dest) {
+    async sendAuthMail_test(email) {
         let result = false;
 
         try {
@@ -117,10 +124,10 @@ class Mailer {
             await this.sendMail(dest, 'Blote authentication code', mail);
             result = true;
         } catch (err) {
-            logger.error(err);
-        } finally {
-            return result;
+            throw err;
         }
+
+        return result;
     }
 }
 

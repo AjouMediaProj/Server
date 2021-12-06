@@ -7,7 +7,7 @@ module.exports = {
     privateKey: process.env.KLAY_PRIVATE_KEY,
     feePayerAddress: process.env.KLAY_FEE_PLAYER_ADDRESS,
     feePayerPrivateKey: process.env.KLAY_FEE_PLAYER_PRIVATE_KEY,
-    contractAddress: '0x43BC7140e289433fb1D2F44b86fcF5429Ed7B7B6',
+    contractAddress: '0xe8e72778f82124FbAEEd0Dd9276EA33BbeDE57f8',
     abi: [
         { constant: true, inputs: [], name: 'isOwner', outputs: [{ name: '', type: 'bool' }], payable: false, stateMutability: 'view', type: 'function', signature: '0x8f32d59b' },
         {

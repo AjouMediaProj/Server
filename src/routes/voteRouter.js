@@ -7,7 +7,6 @@
 
 /* Modules */
 const express = require('express');
-const passport = require('passport');
 const authMiddleware = require('@src/routes/middlewares/authMiddleware');
 const voteMiddleware = require('@src/routes/middlewares/voteMiddleware');
 
@@ -20,11 +19,11 @@ const router = express.Router();
 
 /* POST */
 router.post('/getVoteList', voteMiddleware.getVoteList);
-router.post('/addVote', authMiddleware.isNotSignedIn, voteMiddleware.addVote);
-router.post('/addCandidate', authMiddleware.isNotSignedIn, voteMiddleware.addCandidate);
-router.post('/vote', authMiddleware.isNotSignedIn, voteMiddleware.vote);
-router.post('/getVoteOverview', authMiddleware.isNotSignedIn, voteMiddleware.getVoteOverview);
-router.post('/decodeVoteReceipt', authMiddleware.isNotSignedIn, voteMiddleware.decodeVoteReceipt);
+router.post('/addVote', authMiddleware.isSignedIn, voteMiddleware.addVote);
+router.post('/addCandidate', authMiddleware.isSignedIn, voteMiddleware.addCandidate);
+router.post('/vote', authMiddleware.isSignedIn, voteMiddleware.vote);
+router.post('/getVoteOverview', authMiddleware.isSignedIn, voteMiddleware.getVoteOverview);
+router.post('/decodeVoteReceipt', authMiddleware.isSignedIn, voteMiddleware.decodeVoteReceipt);
 
 /* Export the router as module */
 module.exports = router;

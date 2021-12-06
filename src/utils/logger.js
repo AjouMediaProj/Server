@@ -6,7 +6,6 @@
  */
 
 /* Modules */
-const moment = require('moment');
 const winston = require('winston');
 const path = require('path');
 const utility = require('@src/utils/utility');
@@ -99,7 +98,7 @@ class Logger {
         if (!this.logger) {
             const isDev = (process.env.NODE_ENV || 'development') === 'development';
             this.logger = winston.createLogger({
-                level: isDev ? 'debug' : 'http',
+                level: isDev ? 'info' : 'http',
                 format: this.makeFormat(),
                 transports: [
                     this.getTransport('console'), // console log

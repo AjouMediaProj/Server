@@ -1,26 +1,33 @@
 /**
  * vote.js
- * Last modified: 2021.10.13
- * Author: Lee Hong Jun
+ * Last modified: 2021.11. 27
+ * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Vote model
  */
 
 /* Modules */
 const Sequelize = require('sequelize');
+const BaseModel = require('@src/database/models/baseModel');
+const Type = require('@src/utils/type');
 
 /**
  * @class Vote
  * @description Vote database model
  */
-class Vote extends Sequelize.Model {
+class Vote extends BaseModel {
     /**
-     * @static @function initialize
-     * @description
+     * @static @function init
+     * @description Initialize the Vote model
      *
-     * @param {Sequelize} sequelize Sequelize object.
-     * @return {}
+     * @param {object} sequelize Instance of Sequelize.
+     * @returns {Sequelize.Model}
      */
     static init(sequelize) {
+        // modelName (sequelize model name), tableName (mysql table name)
+        const mName = this.name;
+        const tName = mName.toLowerCase() + 's';
+
+        // Attributes of Vote model
         const attributes = {
             idx: {
                 type: Sequelize.INTEGER,
@@ -64,12 +71,13 @@ class Vote extends Sequelize.Model {
             },
         };
 
+        // Options of Vote model
         const opts = {
             sequelize,
             timestamps: true,
             underscored: false,
-            modelName: 'Vote',
-            tableName: 'votes',
+            modelName: mName,
+            tableName: tName,
             paranoid: true,
             charset: 'utf8',
             collate: 'utf8_general_ci',
@@ -78,7 +86,17 @@ class Vote extends Sequelize.Model {
         return super.init(attributes, opts);
     }
 
-    static associate(models) {}
+    /**
+     * @override
+     * @static @function makeObject
+     * @description Make new object.
+     *
+     * @param {Type.VoteObject} initData Data to initialize the object.
+     * @returns {Type.VoteObject} New empty object based on model.
+     */
+    static makeObject(initData = null) {
+        return super.makeObject(initData);
+    }
 }
 
 /* Exports */

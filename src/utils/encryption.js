@@ -31,7 +31,7 @@ class Entryption {
      * @async @function createSalt
      * @description Create random salt string.
      *
-     * @param {number} size Size of random bytes.
+     * @param {number} size Size of random bytes. (default: 8)
      * @returns {promise<string>} Promise of salt string. (ex. arg size: 16, -> return salt string size: 32 (x2))
      * @example
      * In async function,
@@ -39,7 +39,7 @@ class Entryption {
      * const salt = await encryption.createhSalt();
      * ...
      */
-    async createSalt(size = 16) {
+    async createSalt(size = 8) {
         let salt = null;
 
         try {

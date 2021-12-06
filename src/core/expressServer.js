@@ -25,7 +25,6 @@ const path = require('path');
 const logger = require('@src/utils/logger');
 
 /* Routers */
-const pageRouter = require('@src/routes/pageRouter');
 const authRouter = require('@src/routes/authRouter');
 const voteRouter = require('@src/routes/voteRouter');
 const uploadRouter = require('@src/routes/uploadRouter');
@@ -117,7 +116,6 @@ class ExpressServer {
         this.app.use(passport.session());
 
         // routers
-        this.app.use('/', pageRouter);
         this.app.use('/auth', authRouter);
         this.app.use('/vote', voteRouter);
         this.app.use('/upload', uploadRouter);

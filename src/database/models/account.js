@@ -1,6 +1,6 @@
 /**
  * account.js
- * Last modified: 2021.11.24
+ * Last modified: 2021.11.29
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Sequelize model (Account)
  */
@@ -8,7 +8,7 @@
 /* Modules */
 const Sequelize = require('sequelize');
 const BaseModel = require('@src/database/models/baseModel');
-const Type = require('@src/utils/type');
+const type = require('@src/utils/type');
 
 /**
  * @class Account
@@ -35,6 +35,7 @@ class Account extends BaseModel {
                 allowNull: false,
                 unique: true,
                 primaryKey: true,
+                autoIncrement: true,
             },
             email: {
                 type: Sequelize.STRING(48),
@@ -69,10 +70,10 @@ class Account extends BaseModel {
     /**
      * @override
      * @static @function makeObject
-     * @description Make new object.
+     * @description Make new data object based on type.AccountObject
      *
-     * @param {Type.AccountObject} initData Data to initialize the object.
-     * @returns {Type.AccountObject} New empty object based on model.
+     * @param {type.AccountObject} initData Data to initialize the object
+     * @returns {type.AccountObject} New empty object based on type.AcountObject
      */
     static makeObject(initData = null) {
         return super.makeObject(initData);

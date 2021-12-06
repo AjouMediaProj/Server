@@ -1,14 +1,12 @@
 /**
  * crawlerServer.js
- * Last modified: 2021.11.15
+ * Last modified: 2021.12.02
  * Author: Han Kyu Hyeon
  * Description: Crawling vote contract to sync vote counts.
  */
 
 /* Modules */
-const contract = require('@src/blockchain/contract');
 const voteMgr = require('@src/database/managers/voteManager');
-const candMgr = require('@src/database/managers/candidateManager');
 
 /* Utils */
 const logger = require('@src/utils/logger');
@@ -19,9 +17,16 @@ const logger = require('@src/utils/logger');
  */
 class CrawlerServer {
     constructor() {
-        this.standardTime = 600; // 10 min
+        this.runGap = 1000; // 1000 ms (1sec)
+        this.updateVoteGap = 60 * 10; // 10 min
+        this.nextUpdateTime = Date.now() + 1000 * this.updateVoteGap;
     }
 
+    /**
+     * @async
+     * @function run
+     * @description Execute the update method per execTime
+     */
     async run() {
         setInterval(async () => {
             try {
@@ -29,25 +34,23 @@ class CrawlerServer {
             } catch (err) {
                 logger.error(err);
             }
-        }, 1000);
+        }, this.runGap);
     }
 
+    /**
+     * @async
+     * @function update
+     * @description Execute the task every this.runGap
+     */
     async update() {
-        const nowTimestamp = Math.floor(Date.now() / 1000);
-        if (nowTimestamp % this.standardTime == 0) {
-            const votes = await voteMgr.findEnableVotes();
-            for (let i in votes) {
-                // @todo db transaction
-                const voteData = await contract.getVote(votes[i].idx);
-                await voteMgr.setVoteCount(votes[i].idx, voteData.totalVoteCnt);
+        if (Date.now() - this.nextUpdateTime >= 0) {
+            this.nextUpdateTime = Date.now() + 1000 * this.updateVoteGap;
 
-                for (let i in voteData.candIdxes) {
-                    const candData = await contract.getCandidate(voteData.candIdxes[i]);
-                    await candMgr.setCandidateCount(candData.candIdx, candData.voteCnt);
-                }
-            }
+            const votes = await voteMgr.findValidVotes();
+            await voteMgr.syncVotes(votes);
         }
     }
 }
 
+/* Export the CrawlerServer class as module */
 module.exports = CrawlerServer;

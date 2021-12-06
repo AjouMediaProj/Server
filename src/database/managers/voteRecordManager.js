@@ -6,63 +6,20 @@
  */
 
 /* Modules */
-const BaseManager = require('@src/database/managers/baseManager');
+const db = require('@src/database/database2');
+const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
 
 /* Variables */
-const baseVoteRecordObject = {
-    voteIdx: null,
-    userIdx: null,
-    status: null,
-};
-
-const status = {
-    default: 0,
-    verified: 1,
-};
 
 /**
  * @class VoteRecordManager
  * @description
  */
-class VoteRecordManager extends BaseManager {
+class VoteRecordManager {
     constructor() {
-        super();
-
-        this.modelName = 'voteRecord';
-    }
-
-    get status() {
-        return status;
-    }
-
-    /**
-     * @function makeVoteObj
-     * @description Make new object based on baseVoteRecordObject
-     *
-     * @param {number} voteIdx Vote index
-     * @param {number} userIdx User index
-     * @returns {baseVoteRecordObject} New vote record object
-     */
-    async makeVoteRecordObj(voteIdx, userIdx) {
-        let rtn = super.getBaseObject(baseVoteRecordObject);
-
-        rtn.voteIdx = voteIdx;
-        rtn.userIdx = userIdx;
-        rtn.status = status.default;
-
-        return rtn;
-    }
-
-    /**
-     * @function create
-     * @description Sequelize create
-     *
-     * @param {baseVoteRecordObject} voteRecordObj VoteRecord object
-     */
-    async create(voteRecordObj) {
-        await super.create(this.modelName, voteRecordObj);
+        this.modelName = 'VoteRecord';
     }
 
     /**
@@ -76,13 +33,17 @@ class VoteRecordManager extends BaseManager {
     async findVoteRecord(voteIdx, userIdx) {
         let rtn = null;
 
-        const query = {
-            where: {
-                [super.getOp.and]: [{ voteIdx: { [super.getOp.eq]: voteIdx } }, { userIdx: { [super.getOp.eq]: userIdx } }],
-            },
-        };
         try {
-            rtn = await super.find(this.modelName, query);
+            const q = db.getModel(this.modelName).makeQuery(type.QueryMethods.findOne);
+            q.where = {
+                // prettier-ignore
+                [db.Op.and]: [
+                    { voteIdx: { [db.Op.eq]: voteIdx } }, 
+                    { userIdx: { [db.op.eq]: userIdx } }
+                ],
+            };
+
+            rtn = await db.execQuery(q);
         } catch (err) {
             throw err;
         }
@@ -99,14 +60,24 @@ class VoteRecordManager extends BaseManager {
      * @param {number} status Vote record status
      */
     async updateVoteRecord(voteIdx, userIdx, status) {
-        const contents = { status };
-        const query = {
-            where: {
-                [super.getOp.and]: [{ voteIdx: { [super.getOp.eq]: voteIdx } }, { userIdx: { [super.getOp.eq]: userIdx } }],
-            },
-        };
+        let rtn = null;
 
-        await this.update(this.modelName, contents, query);
+        try {
+            const q = db.getModel(this.modelName).makeQuery(type.QueryMethods.update, { status });
+            q.where = {
+                // prettier-ignore
+                [db.Op.and]: [
+                    { voteIdx: { [db.Op.eq]: voteIdx } }, 
+                    { userIdx: { [db.Op.eq]: userIdx } }
+                ],
+            };
+
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
     }
 }
 

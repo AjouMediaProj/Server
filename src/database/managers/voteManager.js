@@ -1,92 +1,50 @@
 /**
  * voteManager.js
- * Last modified: 2021.11.08
- * Author: Han Kyu Hyeon (kahmnkk, kyuhh1214@naver.com)
+ * Last modified: 2021.12.06
+ * Author
+ *  Han Kyu Hyeon (kahmnkk, kyuhh1214@naver.com)
+ *  Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Vote Manager
  */
 
 /* Modules */
-const BaseManager = require('@src/database/managers/baseManager');
-const logger = require('@src/utils/logger');
-const utility = require('@src/utils/utility');
+const db = require('@src/database/database2');
+const type = require('@src/utils/type');
+const contract = require('@src/blockchain/contract');
 
-/* Variables */
-const baseVoteObject = {
-    idx: null,
-    category: null,
-    name: null,
-    totalCount: null,
-    startTime: null,
-    endTime: null,
-    status: null,
-};
-
-const status = {
-    default: 0,
-    deleted: 1,
+const modelName = {
+    candidate: db.getModel('Candidate').name,
+    vote: db.getModel('Vote').name,
+    voteRecord: db.getModel('VoteRecord').name,
 };
 
 /**
- * @class VoteManager
- * @description
+ * @calss VoteManager
+ * @description Manage Candidate, Vote, VoteRecord table
  */
-class VoteManager extends BaseManager {
-    constructor() {
-        super();
-
-        this.modelName = 'vote';
-    }
+class VoteManager {
+    constructor() {}
 
     /**
-     * @function makeVoteObj
-     * @description Make new object based on baseVoteObject
-     *
-     * @param {number} idx Vote index from contract.
-     * @param {number} category Category type. Defined in file.
-     * @param {string} name Vote name
-     * @param {number} startTime Vote startTime
-     * @param {number} endTime Vote endTime
-     * @returns {baseVoteObject} New vote object
+     * -----------------------------------------------------------------------------
+     * ------------------------------- [ Candidate ] -------------------------------
+     * -----------------------------------------------------------------------------
      */
-    async makeVoteObj(idx, category, name, startTime, endTime) {
-        let rtn = super.getBaseObject(baseVoteObject);
-
-        rtn.idx = idx;
-        rtn.category = category;
-        rtn.name = name;
-        rtn.totalCount = 0;
-        rtn.startTime = startTime;
-        rtn.endTime = endTime;
-        rtn.status = status.default;
-
-        return rtn;
-    }
 
     /**
-     * @function create
-     * @description Sequelize create
+     * @async
+     * @function registerCandidate
+     * @description Register new candidate to database
      *
-     * @param {baseVoteObject} voteObj Vote object
+     * @param {type.CandidateObject} candObj
+     * @returns {type.CandidateObject}
      */
-    async create(voteObj) {
-        await super.create(this.modelName, voteObj);
-    }
-
-    /**
-     * @function findVote
-     * @description Select vote from database.
-     *
-     * @param {number} idx Vote index
-     * @returns {baseVoteObject}
-     */
-    async findVote(idx) {
+    async registerCandidate(candObj) {
         let rtn = null;
 
-        const query = {
-            where: { idx },
-        };
         try {
-            rtn = await super.find(this.modelName, query);
+            const q = db.getModel(modelName.candidate).makeQuery(type.QueryMethods.create, candObj);
+            rtn = await db.execQuery(q);
         } catch (err) {
             throw err;
         }
@@ -95,21 +53,26 @@ class VoteManager extends BaseManager {
     }
 
     /**
-     * @function findEnableVotes
-     * @description Select enable votes from database.
+     * @async
+     * @function findCandidatesFromVote
+     * @description Find all candidates from vote
      *
-     * @returns {Array<baseVoteObject>}
+     * @param {number} voteIdx Vote index which candidate belongs.
+     * @returns {Array<baseCandidateObject>}
      */
-    async findEnableVotes() {
+    async findCandidatesFromVote(voteIdx) {
         let rtn = null;
 
-        const query = {
-            where: {
-                [super.getOp.and]: [{ startTime: { [super.getOp.lte]: Date.now() } }, { endTime: { [super.getOp.gte]: Date.now() } }, { status: { [super.getOp.eq]: status.default } }],
-            },
-        };
         try {
-            rtn = await super.findAll(this.modelName, query);
+            const q = db.getModel(modelName.candidate).makeQuery(type.QueryMethods.findAll);
+            q.conditions.where = {
+                // prettier-ignore
+                [db.Op.and]: [
+                    { voteIdx: { [db.Op.eq]: voteIdx } }, 
+                    { status: { [db.Op.eq]: type.CandidateStatus.default } }
+                ],
+            };
+            rtn = await db.execQuery(q);
         } catch (err) {
             throw err;
         }
@@ -118,19 +81,232 @@ class VoteManager extends BaseManager {
     }
 
     /**
-     * @function setVoteCount
-     * @description Set vote count from contract.
+     * @function setCandidateCount
+     * @description Set candidate count from contract.
      *
      * @param {number} idx
-     * @param {number} totalCount
+     * @param {number} count
+     * @returns {number}
      */
-    async setVoteCount(idx, totalCount) {
-        const contents = { totalCount };
-        const query = { where: { idx } };
+    async setCandidateCount(idx, count) {
+        let rtn = null;
 
-        await this.update(this.modelName, contents, query);
+        try {
+            const q = db.getModel(modelName.candidate).makeQuery(type.QueryMethods.update, { count }, { where: { idx } });
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
+     * -----------------------------------------------------------------------------
+     * --------------------------------- [ Vote ] ----------------------------------
+     * -----------------------------------------------------------------------------
+     */
+
+    /**
+     * @async
+     * @function registerNewVote
+     * @description Register new vote to contract & database
+     *
+     * @param {type.VoteObject} voteObj Vote object
+     * @returns {type.VoteObject}
+     */
+    async registerVote(voteObj) {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.vote).makeQuery(type.QueryMethods.create, voteObj);
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+    /**
+     * @async
+     * @function findVoteByIdx
+     * @description Find specific vote by idx
+     *
+     * @param {number} idx Index of vote
+     * @returns {type.VoteObject} Vote object
+     */
+    async findVoteByIdx(idx) {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.vote).makeQuery(type.QueryMethods.findOne, null, { where: { idx } });
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
+     * @async
+     * @function findValidVotes
+     * @description Find all valid votes in database
+     *
+     * @returns {Array<type.VoteObject>} Array of vote objects
+     */
+    async findValidVotes() {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.vote).makeQuery(type.QueryMethods.findAll);
+            q.conditions.where = {
+                // prettier-ignore
+                [db.Op.and]: [
+                        { startTime: { [db.Op.lte]: Date.now() } }, 
+                        { endTime: { [db.Op.gte]: Date.now() } }, 
+                        { status: { [db.Op.eq]: type.VoteStatus.default } }
+                    ],
+            };
+
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
+     * @async
+     * @function setVoteTotalCount
+     * @description Set vote total count
+     *
+     * @param {number} idx Index of vote
+     * @param {number} totalCount Vote total count
+     * @returns {boolean} Whether the update is successful or not.
+     */
+    async setVoteTotalCount(idx, totalCount) {
+        let rtn = false;
+
+        try {
+            const q = db.getModel(modelName.vote).makeQuery(type.QueryMethods.update);
+            q.data = { totalCount };
+            q.conditions.where = { idx };
+
+            if ((await db.execQuery(q)) > 0) rtn = true;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * @async
+     * @function syncVotes
+     * @description Synchronize voting information between database and contact.
+     *
+     * @param {Array<type.VoteObject>} votes Array based on type.VoteObject
+     */
+    async syncVotes(votes) {
+        for (let v of votes) {
+            const arr = [];
+            const voteData = await contract.getVote(v.idx);
+            arr.push(db.getModel(modelName.vote).makeQuery(type.QueryMethods.update, { totalCount: voteData.totalVoteCnt }, { where: { idx: voteData.voteIdx } }));
+
+            for (let c of voteData.candIdxes) {
+                const candData = await contract.getCandidate(c);
+                arr.push(db.getModel(modelName.candidate).makeQuery(type.QueryMethods.update, { count: candData.voteCnt }, { where: { idx: candData.candIdx } }));
+            }
+
+            await db.execTransaction(arr);
+        }
+    }
+
+    /**
+     * -----------------------------------------------------------------------------
+     * ------------------------------ [ VoteRecord ] -------------------------------
+     * -----------------------------------------------------------------------------
+     */
+
+    /**
+     * @async
+     * @function registerVoteRecord
+     * @description
+     *
+     * @param {type.VoteRecordObject} voteRecordObj
+     * @returns {type.VoteRecordObject}
+     */
+    async registerVoteRecord(voteRecordObj) {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.voteRecord).makeQuery(type.QueryMethods.create, voteRecordObj);
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
+     * @function findVoteRecord
+     * @description Select vote record from database.
+     *
+     * @param {number} voteIdx Vote index
+     * @param {number} userIdx User index
+     * @returns {baseVoteRecordObject}
+     */
+    async findVoteRecord(voteIdx, userIdx) {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.voteRecord).makeQuery(type.QueryMethods.findOne);
+            q.conditions.where = {
+                // prettier-ignore
+                [db.Op.and]: [
+                        { voteIdx: { [db.Op.eq]: voteIdx } }, 
+                        { userIdx: { [db.Op.eq]: userIdx } }
+                    ],
+            };
+
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
+     * @function updateVoteRecordStatus
+     * @description Update vote record status.
+     *
+     * @param {number} voteIdx Vote index
+     * @param {number} userIdx User index
+     * @param {number} status Vote record status
+     */
+    async updateVoteRecordStatus(voteIdx, userIdx, status) {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.voteRecord).makeQuery(type.QueryMethods.update, { status });
+            q.conditions.where = {
+                // prettier-ignore
+                [db.Op.and]: [
+                    { voteIdx: { [db.Op.eq]: voteIdx } }, 
+                    { userIdx: { [db.Op.eq]: userIdx } }
+                ],
+            };
+
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
     }
 }
 
-/* Export object as module */
+/* Export instance as module */
 module.exports = new VoteManager();

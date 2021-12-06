@@ -1,17 +1,20 @@
 /**
  * authMiddleware.js
- * Last modified: 2021.10.29
+ * Last modified: 2021.12.06
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Various middleware callbacks used in Express server are defined.
  */
 
 /* Modules */
 require('dotenv').config();
+const { Request, Response, NextFunction } = require('express');
 const passport = require('passport');
+
+const type = require('@src/utils/type');
 const mailer = require('@src/utils/mailer');
-const accountManager = require('@src/database/managers/accountManager');
 const logger = require('@src/utils/logger');
-const db = require('@src/database/database2');
+const utility = require('@src/utils/utility');
+const authManager = require('@src/database/managers/authManager');
 
 /**
  * @class AuthMiddleware
@@ -23,60 +26,88 @@ class AuthMiddleware {
     /**
      * @function signIn
      * @description Excuted when user sign in the web service. (middleware callback)
-     * @param {object} req Client's Request object.
-     * @param {object} res Server's Response object.
-     * @param {function} next Next function.
+     *
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     * @param {MextFunction} next Next function.
      */
     signIn(req, res, next) {
-        const makeLogin = (req, res, next, user) => {
-            req.login(user, (loginError) => {
-                if (loginError) {
-                    logger.error(loginError);
-                    return next(loginError);
-                } else {
-                    return res.redirect('/');
+        // local sign in callback
+        const makeSignIn = (req, res, next, user) => {
+            req.login(user, (err) => {
+                // occured sign in error
+                if (err) {
+                    logger.error(err);
+                    return next(err);
+                }
+                // success to sign in the service
+                else {
+                    return res.sendStatus(type.HttpStatus.OK);
                 }
             });
         };
 
-        const callback = (err, user, info) => {
+        // local authentication callback
+        const localAuthenticateCallback = (err, user, info) => {
+            // occured sign in error
             if (err) {
-                // occured sign in error
                 logger.error(err);
                 return next(err);
-            } else if (!user) {
-                // cannot find the user
-                return res.redirect(`/?loginError=${info.message}`);
-            } else {
-                // try to make login
-                makeLogin(req, res, next, user);
+            }
+            // cannot find the user
+            else if (!user) {
+                return res.sendStatus(type.HttpStatus.NotFound);
+            }
+            // try to make sign in
+            else {
+                makeSignIn(req, res, next, user);
             }
         };
 
-        passport.authenticate('local', callback)(req, res, next);
+        passport.authenticate('local', localAuthenticateCallback)(req, res, next);
     }
 
     /**
-     * @async @function signUp
+     * @async 
+     * @function signUp
      * @description Called when user sign up for a web service. (middleware callback)
-     * @param {object} req Client's Request object.
-     * @param {object} res Server's Response object.
-     * @param {function} next Next function.
+     * 
+     * Request.body = {
+            email,
+            password,
+            authCode,
+            name,
+            studentID,
+            major
+        }
+     *
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function.
      */
     async signUp(req, res, next) {
-        const email = req.body.email;
-        const password = req.body.password;
+        // Make account, user object
+        const accObj = type.cloneAccountObject(req.body);
+        const userObj = type.cloneUserObject(req.body);
+        const authCode = req.body.authCode;
 
         try {
-            const user = await accountManager.findAccountByEmail(req.body.email);
-
-            if (user) {
-                return res.redirect('/join?error=exist');
+            // Check the account already exist.
+            if (await authManager.findAccountByEmail(accObj.email)) {
+                return res.sendStatus(type.HttpStatus.Conflict);
             }
 
-            const accObj = await accountManager.makeAccountObj(accountManager.accountType.local, req.body.email, req.body.password);
-            await accountManager.createAccount(accObj);
-            return res.redirect('/');
+            // Check email authentication
+            if (!(await authManager.isValidAuthCode(accObj.email, authCode))) {
+                return res.sendStatus(type.HttpStatus.BadRequest);
+            }
+
+            // Register new account & user information
+            if (await authManager.registerUserInfo(accObj, userObj)) {
+                return res.sendStatus(type.HttpStatus.OK);
+            } else {
+                return res.sendStatus(type.HttpStatus.InternalServerError);
+            }
         } catch (err) {
             logger.error(err);
             return next(err);
@@ -86,14 +117,137 @@ class AuthMiddleware {
     /**
      * @function signOut
      * @description Called when user sign out for a web service. (middleware callback)
-     * @param {object} req Client's Request object.
-     * @param {object} res Server's Response object.
-     * @param {function} next Next function.
+     *
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
      */
     signOut(req, res) {
         req.logout();
         req.session.destroy();
-        res.redirect('/');
+        utility.routerSend(res, type.HttpStatus.OK);
+    }
+
+    /**
+     * @async
+     * @function findEmail
+     * @description Find email using user's name & studentID
+     * 
+     *  req.body = {
+            name,
+            studentID
+        }
+
+        res.data = {
+            {
+                email: 'useremail@abcd.com'
+            }
+        }
+     * 
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     */
+    async findEmail(req, res) {
+        const name = req.body.name;
+        const studentID = req.body.studentID;
+
+        try {
+            const result = await authManager.findEmailByUser(name, studentID);
+
+            if (result) {
+                utility.routerSend(res, type.HttpStatus.OK, result);
+            } else {
+                utility.routerSend(res, type.HttpStatus.NotFound);
+            }
+        } catch (err) {
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+        }
+    }
+
+    /**
+     * @async
+     * @function resetPassword
+     * @description Reset account password
+     *
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     */
+    async resetPassword(req, res) {
+        const email = req.body.email;
+
+        // todo
+    }
+
+    /**
+     * @async 
+     * @function resetPassword
+     * @description Update account password 
+     * 
+     *  req.body = {
+            password
+        }
+     * 
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     */
+    async updatePassword(req, res) {
+        const password = req.body.password;
+
+        if (!password) return utility.routerSend(res, type.HttpStatus.BadRequest);
+
+        try {
+            if (await authManager.resetPassword(req.user.idx, password)) utility.routerSend(res, type.HttpStatus.OK);
+            else utility.routerSend(res, type.HttpStatus.NotFound);
+        } catch (err) {
+            logger.error(err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+        }
+    }
+
+    /**
+     * @async
+     * @function deleteAccount
+     * @description Delete account from service
+     *
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     */
+    async deleteAccount(req, res) {
+        const idx = req.user.idx;
+        if (!idx) return utility.routerSend(res, type.HttpStatus.Unauthorized);
+
+        try {
+            await authManager.deleteAccountByIdx(idx);
+            utility.routerSend(res, type.HttpStatus.NoContent);
+        } catch (err) {
+            logger.error(err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+        }
+    }
+
+    /**
+     * @async
+     * @function sendAuthMail
+     * @description Send authentication to client & Register it to database.
+     * 
+     * Request.body = {
+            email,
+        }
+
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     */
+    async sendAuthMail(req, res) {
+        // Get email from req.body
+        const email = req.body.email;
+        if (!email) return utility.routerSend(res, type.HttpStatus.BadRequest);
+
+        try {
+            // send auth mail
+            utility.routerSend(res, await mailer.sendAuthMail(email));
+        } catch (err) {
+            logger.error(err);
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+        }
     }
 
     /**
@@ -101,19 +255,18 @@ class AuthMiddleware {
      * @description
      * Check whether the user is signed in to the web service or not. (middleware callback)
      * Logout router or image upload router is accessible only to signed in user.
-     * @param {object} req Client's Request object.
-     * @param {object} res Server's Response object.
-     * @param {function} next Next function.
+     *
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function.
      */
     isSignedIn(req, res, next) {
         if (req.isAuthenticated()) {
+            // Authenticated request, next()
             next();
         } else {
-            res.status(403).send('Need to sign in our service.');
-            /*const error = new Error('Need to sign in our service.');
-            error.status = 403;
-            next(error);*/
-            //res.status(403).redirect('/');
+            // Unauthenticated request, send 401 Unauthorized
+            utility.routerSend(res, type.HttpStatus.Unauthorized);
         }
     }
 
@@ -122,35 +275,18 @@ class AuthMiddleware {
      * @description
      * Check whether the user is not signed in to the web service or not. (middleware callback)
      * Sign up router or sign in router is accessible only to those who have not signed in.
-     * @param {object} req Client's Request object.
-     * @param {object} res Server's Response object.
-     * @param {function} next Next function.
+     *
+     * @param {Request} req Express Request object (from client)
+     * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function.
      */
     isNotSignedIn(req, res, next) {
         if (!req.isAuthenticated()) {
+            // Unauthenticated request, next()
             next();
         } else {
-            res.redirect(`/?error='You are currently logged in.'`);
-        }
-    }
-
-    /**
-     *
-     */
-    async sendAuthMail(req, res) {
-        const email = req.body.email;
-        if (email === undefined) {
-            logger.info('Fail to send auth mail: email property is undefined');
-            res.sendStatus(404);
-        } else {
-            const result = await mailer.sendAuthMail(email);
-            if (result) {
-                logger.info('Success to send auth mail');
-                res.sendStatus(200);
-            } else {
-                logger.info('Fail to send auth mail: mailer.sendAuthMail() returns false');
-                res.sendStatus(404);
-            }
+            // Authenticated request, send 400 Bad Request
+            utility.routerSend(res, type.HttpStatus.BadRequest);
         }
     }
 }

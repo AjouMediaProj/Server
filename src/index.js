@@ -81,7 +81,7 @@ class WebService {
      * @static @async @function test
      * @description Function to test simple code.
      */
-    static async test() {
+    static test() {
         // todo something (test code)
     }
 }

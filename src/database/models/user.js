@@ -1,6 +1,6 @@
 /**
  * user.js
- * Last modified: 2021.11.24
+ * Last modified: 2021.11.29
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Sequelize model (User)
  */
@@ -8,7 +8,7 @@
 /* Modules */
 const Sequelize = require('sequelize');
 const BaseModel = require('@src/database/models/baseModel');
-const Type = require('@src/utils/type');
+const type = require('@src/utils/type');
 
 /**
  * @class User
@@ -35,18 +35,19 @@ class User extends BaseModel {
                 allowNull: false,
                 unique: true,
                 primaryKey: true,
+                autoIncrement: true,
             },
             name: {
                 type: Sequelize.STRING(32),
-                allowNull: true,
+                allowNull: false,
             },
-            nickname: {
-                type: Sequelize.STRING(32),
-                allowNull: true,
+            studentID: {
+                type: Sequelize.INTEGER,
+                unique: true,
+                allowNull: false,
             },
             major: {
                 type: Sequelize.INTEGER,
-                unique: true,
                 allowNull: false,
             },
             accessLevel: {
@@ -74,10 +75,10 @@ class User extends BaseModel {
     /**
      * @override
      * @static @function makeObject
-     * @description Make new object.
+     * @description Make new data object based on type.UserObject
      *
-     * @param {Type.UserObject} initData Data to initialize the object.
-     * @returns {Type.UserObject} New empty object based on model.
+     * @param {type.UserObject} initData Data to initialize the object
+     * @returns {type.UserObject} New empty object based on type.UserObject
      */
     static makeObject(initData = null) {
         return super.makeObject(initData);

@@ -15,35 +15,45 @@ const utilsMiddleware = require('@root/src/routes/middlewares/utilsMiddleware');
 const router = express.Router();
 
 /**
- * Local Authentication
+ * -------------------- [GET] --------------------
  */
 
-/* GET */
-
-// '/auth/signout': sign out request. (using the local authentication system)
-router.get('/signout', authMiddleware.isSignedIn, authMiddleware.signOut);
-
-/* POST */
-
-// '/auth/signin': sign in request. (using the local authentication system)
-router.post('/signin', authMiddleware.isNotSignedIn, authMiddleware.signIn);
-
-// '/auth/signup': sign up request. (using the local authentication system)
-router.post('/signup', authMiddleware.isNotSignedIn, authMiddleware.signUp);
-
-router.post('/sendmail', authMiddleware.sendAuthMail);
-
-/**
- * Kakao Authentication
- */
-
-/* GET */
-
-// '/auth/kakao': Sign in request. (using the kakao authentication system)
+/* URL: '/auth/kakao' - Sign in request. (passport kakao) */
 router.get('/kakao', passport.authenticate('kakao'));
 
-// '/auth/kakao/callback': Sign in request result callback. (using the kakao authentication system)
+/* URL: '/auth/kakao/callback' - Sign in request result callback. (passport kakao) */
 router.get('/kakao/callback', passport.authenticate('kakao', { failureRedirect: '/' }), utilsMiddleware.redirectToRoot);
+
+/* URL: '/auth/find-email' - Find email request. */
+router.get('/find-email', authMiddleware.isNotSignedIn, authMiddleware.findEmail);
+
+/* URL: '/auth/sign-out' - Sign out from service */
+router.get('/sign-out', authMiddleware.isSignedIn, authMiddleware.signOut);
+
+/**
+ * -------------------- [POST] --------------------
+ */
+
+/* URL: '/auth/send-email' - Send authentication email */
+router.post('/send-mail', authMiddleware.sendAuthMail);
+
+/* URL: '/auth/sign-in' - sign in request. (passport local) */
+router.post('/sign-in', authMiddleware.isNotSignedIn, authMiddleware.signIn);
+
+/* URL: '/auth/sign-up' - sign up request. (passport local) */
+router.post('/sign-up', authMiddleware.isNotSignedIn, authMiddleware.signUp);
+
+/**
+ * -------------------- [PATCH] --------------------
+ */
+
+/* URL: '/auth/reset-password' - Reset account password */
+router.patch('/update-password', authMiddleware.isSignedIn, authMiddleware.updatePassword);
+
+/**
+ * -------------------- [DELETE] --------------------
+ */
+router.delete('/delete-account', authMiddleware.isSignedIn, authMiddleware.deleteAccount);
 
 /* Export the router as module */
 module.exports = router;

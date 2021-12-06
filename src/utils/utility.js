@@ -1,14 +1,14 @@
 /**
  * utility.js
- * Last modified: 2021.11.24
+ * Last modified: 2021.12.06
  * Author: Lee Hong Jun (Onggae22, hong3883@naver.com)
  * Description: utility.js has many utility functions.
  */
 
 /* Modules */
+const { Request, Response, NextFunction } = require('express');
 const cloneDeep = require('clone-deep');
 const rp = require('request-promise');
-// const logger = require('@src/utils/logger');
 
 /**
  * @class Utility
@@ -21,12 +21,28 @@ class Utility {
      */
     constructor() {}
 
+    /**
+     * @getter loadLogger
+     * @description lazy loadder (prevant circular access)
+     */
     get loadLogger() {
-        if (this._logger == null) {
+        if (!this._logger) {
             this._logger = require('@src/utils/logger');
         }
 
         return this._logger;
+    }
+
+    /**
+     * @getter loadType
+     * @description lazy loadder (prevant circular access)
+     */
+    get loadType() {
+        if (!this._type) {
+            this._type = require('@src/utils/type');
+        }
+
+        return this._type;
     }
 
     /**
@@ -123,7 +139,7 @@ class Utility {
      *
      * @param {object} src source object.
      * @param {object} dest destination object.
-     * @returns {boolean}
+     * @returns {boolean} Result of merge
      * @example
      * const obj1 = { a: 1, b: 2};
      * const obj2 = { a: 6, b: 8, c: 5, d: 3};
@@ -153,7 +169,7 @@ class Utility {
      *
      * @param {object} baseObj Base object.
      * @param {object} initDataObj Init data object.
-     * @returns {object} Clone object.
+     * @returns {object} Cloned object.
      * @example
      * const baseObject = { a: null, b: null, c: null };
      * const initDataObj = { a: 10, b: 'hi' };
@@ -170,10 +186,10 @@ class Utility {
 
     /**
      * @function requestHTTP
-     * @description Check the object is valid JSON object.
+     * @description Send http request to another host
      *
      * @param {string} uri Uri to send the response.
-     * @returns {Promise<Response>}
+     * @returns {Promise<Response>} Response from another host
      */
     async requestHTTP(uri) {
         let rtn = null;
@@ -192,46 +208,44 @@ class Utility {
     }
 
     /**
-     * @function requestHTTP
-     * @description Check the object is valid JSON object.
+     * @function routerSend
+     * @description Response to client
      *
-     * @param {string} uri Input object.
-     * @returns {boolean} If obj is valid JSON object, return true. Else, return false.
+     * @param {Response} res Express response object (to client)
+     * @param {number} statusCode Http status code ex) 200: OK, 304: Not Modified, 404: Not Found ..
+     * @param {object} data Data for sending to client
+     * @param {boolean} error If true, send error object
      */
-    routerSend(res, data) {
-        this.loadLogger.info(data);
+    routerSend(res, statusCode = this.loadType.HttpStatus.OK, data = null, error = false) {
+        let rtn = null;
 
-        const rtn = {
-            data: data,
-        };
-        res.send(rtn);
+        if (data) {
+            if (error) {
+                rtn = { error: data };
+                this.loadLogger.error(data);
+            } else {
+                rtn = { data };
+                this.loadLogger.info(data);
+            }
+
+            // send status code & data
+            res.status(statusCode).send(rtn);
+        } else {
+            // send only status code
+            res.sendStatus(statusCode);
+        }
     }
 
     /**
-     * @function requestHTTP
-     * @description Check the object is valid JSON object.
+     * @function converToTimestamp
+     * @description Convert time string to sec or milisec
      *
-     * @param {string} uri Input object.
-     * @returns {boolean} If obj is valid JSON object, return true. Else, return false.
-     */
-    routerError(res, data) {
-        this.loadLogger.error(data);
-
-        const rtn = {
-            error: data,
-        };
-        res.send(rtn);
-    }
-
-    /**
-     * @function requestHTTP
-     * @description Check the object is valid JSON object.
-     *
-     * @param {string} uri Input object.
+     * @param {string} timestring Input time string
+     * @param {boolean} milisec If true, timestring will be converted to milisec (default: false, convert to sec)
      * @returns {boolean} If obj is valid JSON object, return true. Else, return false.
      */
     convertToTimestamp(timestring, milisec = false) {
-        return milisec ? new Date(timestring).getTime() : new Date(timestring).getTime() / 1000;
+        return milisec ? new Date(timestring).getTime() : new Date(timestring).getTime() * 0.001;
     }
 }
 

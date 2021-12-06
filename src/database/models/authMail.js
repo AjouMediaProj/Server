@@ -1,6 +1,6 @@
 /**
  * authMail.js
- * Last modified: 2021.11.24
+ * Last modified: 2021.11.29
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Sequelize model (AuthMail)
  */
@@ -8,7 +8,7 @@
 /* Modules */
 const Sequelize = require('sequelize');
 const BaseModel = require('@src/database/models/baseModel');
-const Type = require('@src/utils/type');
+const type = require('@src/utils/type');
 
 /**
  * @class AuthMail
@@ -64,10 +64,10 @@ class AuthMail extends BaseModel {
     /**
      * @override
      * @static @function makeObject
-     * @description Make new object.
+     * @description Make new data object based on type.AuthMailObject
      *
-     * @param {Type.AuthMailObject} initData Data to initialize the object.
-     * @returns {Type.AuthMailObject} New empty object based on model.
+     * @param {type.AuthMailObject} initData Data to initialize the object
+     * @returns {type.AuthMailObject} New empty object based on type.AuthMailObject
      */
     static makeObject(initData = null) {
         return super.makeObject(initData);
