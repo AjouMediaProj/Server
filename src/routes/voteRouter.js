@@ -18,12 +18,14 @@ const router = express.Router();
 /* GET */
 
 /* POST */
-router.post('/getVoteList', voteMiddleware.getVoteList);
-router.post('/addVote', authMiddleware.isSignedIn, voteMiddleware.addVote);
-router.post('/addCandidate', authMiddleware.isSignedIn, voteMiddleware.addCandidate);
-router.post('/vote', authMiddleware.isSignedIn, voteMiddleware.vote);
-router.post('/getVoteOverview', authMiddleware.isSignedIn, voteMiddleware.getVoteOverview);
-router.post('/decodeVoteReceipt', voteMiddleware.decodeVoteReceipt);
+router.post('/get-vote-list', voteMiddleware.getVoteList);
+router.post('/add-vote', voteMiddleware.addVote);
+router.post('/add-candidate', voteMiddleware.addCandidate);
+router.post('/update-vote', voteMiddleware.updateVote);
+router.post('/update-candidate', voteMiddleware.updateCandidate);
+router.post('/vote', voteMiddleware.vote);
+router.post('/get-vote-overview', voteMiddleware.getVoteOverview);
+router.post('/decode-vote-receipt', voteMiddleware.decodeVoteReceipt);
 
 /* Export the router as module */
 module.exports = router;
