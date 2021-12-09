@@ -37,19 +37,32 @@ class AuthManager {
      * @returns {boolean} Result of registration
      */
     async registerUserInfo(accObj, userObj) {
+        let t = null;
         let result = false;
-        const arr = [];
+        let queryResult = null;
+
         accObj.salt = await encryption.createSalt(16);
         accObj.password = await encryption.createHash(accObj.password, accObj.salt);
-        arr.push(db.getModel(modelName.account).makeQuery(type.QueryMethods.create, accObj));
-        arr.push(db.getModel(modelName.user).makeQuery(type.QueryMethods.create, userObj));
 
         try {
-            await db.execTransaction(arr);
+            // begin transaction
+            t = await db.sequelize.transaction();
+
+            // register tuple in Account table
+            queryResult = await db.getModel(modelName.account).create(accObj, t);
+            if (queryResult) userObj.idx = queryResult.idx;
+            else await t.rollback();
+
+            // register tuple in User table
+            queryResult = await db.getModel(modelName.user).create(userObj, t);
+            if (queryResult) await t.commit();
+            else t.rollback();
+
             //await db.sequelize.query(`DELETE FROM votedb_development WHERE email='${accObj.email}'`);
             result = true;
         } catch (err) {
-            logger.error(err);
+            await t.rollback();
+            throw err;
         }
 
         return result;
@@ -140,6 +153,29 @@ class AuthManager {
 
     /**
      * @async
+     * @function findUserByIdx
+     * @description
+     *
+     * @param {number} idx
+     * @returns
+     */
+    async findUserByIdx(idx) {
+        let result = null;
+
+        try {
+            const q = db.getModel(modelName.user).makeQuery(type.QueryMethods.findOne);
+            q.conditions.where = { idx };
+            q.conditions.attributes = ['name', 'studentID', 'major', 'accessLevel'];
+            result = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return result;
+    }
+
+    /**
+     * @async
      * @function findUserByStudentID
      * @description
      *
@@ -151,7 +187,7 @@ class AuthManager {
 
         try {
             const q = db.getModel(modelName.user).makeQuery(type.QueryMethods.findOne);
-            q.where = { studentID };
+            q.conditions.where = { studentID };
 
             result = await db.execQuery(q);
         } catch (err) {

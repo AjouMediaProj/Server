@@ -35,7 +35,6 @@ class User extends BaseModel {
                 allowNull: false,
                 unique: true,
                 primaryKey: true,
-                autoIncrement: true,
             },
             name: {
                 type: Sequelize.STRING(32),

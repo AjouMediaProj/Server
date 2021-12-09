@@ -34,7 +34,7 @@ class AuthMiddleware {
     signIn(req, res, next) {
         // local sign in callback
         const makeSignIn = (req, res, next, user) => {
-            req.login(user, (err) => {
+            req.login(user, async (err) => {
                 // occured sign in error
                 if (err) {
                     logger.error(err);
@@ -42,7 +42,10 @@ class AuthMiddleware {
                 }
                 // success to sign in the service
                 else {
-                    return res.sendStatus(type.HttpStatus.OK);
+                    const u = await authManager.findUserByIdx(user.idx);
+                    u.idx = user.idx;
+                    u.email = user.email;
+                    return utility.routerSend(res, type.HttpStatus.OK, u);
                 }
             });
         };
@@ -56,7 +59,7 @@ class AuthMiddleware {
             }
             // cannot find the user
             else if (!user) {
-                return res.sendStatus(type.HttpStatus.NotFound);
+                return utility.routerSend(res, type.HttpStatus.NotFound, 'Wrong ID or PW', true);
             }
             // try to make sign in
             else {
@@ -94,11 +97,11 @@ class AuthMiddleware {
         try {
             // Check whether the email is duplicated or not.
             if (await authManager.findAccountByEmail(accObj.email)) {
-                return utility.routerSend(res, type.HttpStatus.Conflict, { err: 'DuplicatedEmail' });
+                return utility.routerSend(res, type.HttpStatus.Conflict, 'DuplicatedEmail', true);
             }
             // Check whether the studentID is duplicated or not.
             else if (await authManager.findUserByStudentID(userObj.studentID)) {
-                return utility.routerSend(res, type.HttpStatus.Conflict, { err: 'DuplicatedStudentID' });
+                return utility.routerSend(res, type.HttpStatus.Conflict, 'DuplicatedStudentID', true);
             }
 
             // Check whether the auth mail is valid or not.
