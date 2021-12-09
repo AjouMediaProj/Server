@@ -75,6 +75,8 @@ class Contract {
         if (isDev == true) {
             this.faucet(deployer._address);
         }
+
+        logger.info('Initialize the klaytn contract');
     }
 
     /**

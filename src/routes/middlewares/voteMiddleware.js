@@ -43,6 +43,8 @@ class VoteMiddleware {
             const votes = await voteMgr.findValidVotes();
 
             for (let v of votes) {
+                v.startTime = new Date(v.startTime).getTime();
+                v.endTime = new Date(v.endTime).getTime();
                 rtn.push(v);
             }
 
