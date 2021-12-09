@@ -46,6 +46,12 @@ class Candidate extends BaseModel {
                 defaultValue: '',
                 unique: false,
             },
+            photo: {
+                type: Sequelize.STRING,
+                allowNull: true,
+                defaultValue: '',
+                unique: false,
+            },
             img: {
                 type: Sequelize.STRING,
                 allowNull: true,

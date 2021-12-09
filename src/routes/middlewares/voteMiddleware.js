@@ -111,6 +111,74 @@ class VoteMiddleware {
 
     /**
      * @async
+     * @function updateVote
+     * @description Update vote to block chain & database
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
+    async updateVote(req, res) {
+        const reqKeys = {
+            idx: 'idx',
+            category: 'category',
+            voteName: 'voteName',
+            startTime: 'startTime', // sec
+            endTime: 'endTime', // sec
+            status: 'status',
+        };
+        const resKeys = {
+            result: 'result',
+        };
+
+        try {
+            // parse body data
+            const body = req.body;
+            const idx = body[reqKeys.idx];
+            const category = body[reqKeys.category];
+            const voteName = body[reqKeys.voteName];
+            const startTime = body[reqKeys.startTime];
+            const endTime = body[reqKeys.endTime];
+            const status = body[reqKeys.status];
+
+            // @todo - Check is admin
+            const voteData = await voteMgr.findVoteByIdx(idx);
+            if (voteData.status == type.VoteStatus.deleted) {
+                throw 'err: invalid vote status';
+            }
+            if (category != voteData.category || voteName != voteData.name || startTime != utility.convertToTimestamp(voteData.startTime) || endTime != utility.convertToTimestamp(voteData.endTime)) {
+                if (!voteMgr.validReserveTime(voteData.startTime, voteData.endTime)) throw 'err: invalid vote time';
+            } else if (status != voteData.status) {
+                if (!voteMgr.validEndTime(voteData.endTime)) throw 'err: invalid vote time';
+            }
+
+            // update vote to block chain
+            if (voteName != voteData.name || startTime != utility.convertToTimestamp(voteData.startTime) || endTime != utility.convertToTimestamp(voteData.endTime) || status != voteData.status) {
+                await contract.updateVote(idx, voteName, startTime, endTime, status);
+            }
+
+            const voteObj = type.cloneVoteObject();
+            voteObj.idx = Number(idx);
+            voteObj.category = Number(category);
+            voteObj.name = voteName;
+            voteObj.startTime = startTime * 1000; // convert sec to milisec
+            voteObj.endTime = endTime * 1000; // convert sec to milisec
+            voteObj.status = status;
+
+            // add vote to database
+            await voteMgr.updateVote(voteObj);
+
+            const resData = {};
+            resData[resKeys.result] = true;
+
+            // send result to client
+            utility.routerSend(res, type.HttpStatus.Created, resData);
+        } catch (err) {
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+        }
+    }
+
+    /**
+     * @async
      * @function addCandidate
      * @description Add new candidate to block chain & client
      *
@@ -155,6 +223,76 @@ class VoteMiddleware {
             resData[resKeys.candName] = candObj.name;
             resData[resKeys.photo] = candObj.photo;
             resData[resKeys.img] = candObj.img;
+
+            // send result to client
+            utility.routerSend(res, type.HttpStatus.Created, resData);
+        } catch (err) {
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+        }
+    }
+
+    /**
+     * @async
+     * @function updateCandidate
+     * @description Update candidate to block chain & client
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
+    async updateCandidate(req, res) {
+        const reqKeys = {
+            candIdx: 'candIdx',
+            candName: 'candName',
+            photo: 'photo',
+            img: 'img',
+            txt: 'txt',
+            status: 'status',
+        };
+        const resKeys = {
+            result: 'result',
+        };
+
+        try {
+            const body = req.body;
+            const candIdx = body[reqKeys.candIdx];
+            const candName = body[reqKeys.candName];
+            const photo = body[reqKeys.photo];
+            const img = body[reqKeys.img];
+            const txt = body[reqKeys.txt];
+            const status = body[reqKeys.status];
+
+            // @todo - Check is admin
+            const candData = await voteMgr.findCandidateByIdx(candIdx);
+            const voteData = await voteMgr.findVoteByIdx(candData.voteIdx);
+            if (candData.status == type.CandidateStatus.deleted) {
+                throw 'err: invalid candidate status';
+            }
+            if (candName != candData.name || photo != candData.photo || img != candData.img || txt != candData.txt) {
+                if (!voteMgr.validReserveTime(voteData.startTime, voteData.endTime)) throw 'err: invalid vote time';
+            } else if (status != candData.status) {
+                if (!voteMgr.validEndTime(voteData.endTime)) throw 'err: invalid vote time';
+            }
+
+            // update candidate to block chain
+            if (candName != candData.name || status != candData.status) {
+                await contract.updateCandidate(candData.voteIdx, candIdx, candName, status);
+            }
+
+            // @todo - Update Image, Insert DB(startTransaction ~ query)
+            const candObj = type.cloneCandidateObject();
+            candObj.idx = Number(candIdx);
+            candObj.voteIdx = candData.voteIdx;
+            candObj.name = candName;
+            candObj.photo = photo;
+            candObj.img = img;
+            candObj.txt = txt;
+            candObj.status = status;
+
+            // add candidate to database
+            await voteMgr.updateCandidate(candObj);
+
+            const resData = {};
+            resData[resKeys.result] = true;
 
             // send result to client
             utility.routerSend(res, type.HttpStatus.Created, resData);
@@ -277,8 +415,8 @@ class VoteMiddleware {
             transactionHash: 'transactionHash',
         };
         const resKeys = {
-            voteIdx: 'voteIdx',
-            candIdx: 'candIdx',
+            voteName: 'voteName',
+            candName: 'candName',
             renounce: 'renounce',
         };
 
@@ -290,8 +428,11 @@ class VoteMiddleware {
             // decode the vote receipt
             const decodedData = await contract.decodeVoteReceipt(transactionHash);
 
-            resData[resKeys.voteIdx] = decodedData.voteIdx;
-            resData[resKeys.candIdx] = decodedData.candIdx;
+            const voteData = await voteMgr.findVoteByIdx(decodedData.voteIdx);
+            const candData = await voteMgr.findCandidateByIdx(decodedData.candIdx);
+
+            resData[resKeys.voteName] = voteData.name;
+            resData[resKeys.candName] = candData.name;
             resData[resKeys.renounce] = decodedData.renounce;
 
             // send result to client
