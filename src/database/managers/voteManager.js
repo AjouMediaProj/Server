@@ -11,6 +11,7 @@
 const db = require('@src/database/database2');
 const type = require('@src/utils/type');
 const contract = require('@src/blockchain/contract');
+const utility = require('@root/src/utils/utility');
 
 const modelName = {
     candidate: db.getModel('Candidate').name,
@@ -81,6 +82,27 @@ class VoteManager {
     }
 
     /**
+     * @async
+     * @function findCandidateByIdx
+     * @description Find specific candidate by idx
+     *
+     * @param {number} idx Index of candidate
+     * @returns {type.CandidateObject} Candidate object
+     */
+    async findCandidateByIdx(idx) {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.candidate).makeQuery(type.QueryMethods.findOne, null, { where: { idx } });
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
      * @function setCandidateCount
      * @description Set candidate count from contract.
      *
@@ -99,6 +121,28 @@ class VoteManager {
         }
 
         return rtn;
+    }
+
+    /**
+     * @async
+     * @function updateCandidate
+     * @description Update candidate
+     *
+     * @param {type.CandidateObject} candObj Candidate object
+     * @returns {boolean}
+     */
+    async updateCandidate(candObj) {
+        let rtn = false;
+
+        try {
+            const q = db.getModel(modelName.candidate).makeQuery(type.QueryMethods.update);
+            q.data = { name: candObj.name, photo: candObj.photo, img: candObj.img, txt: candObj.txt, status: candObj.status };
+            q.conditions.where = { idx: candObj.idx };
+
+            if ((await db.execQuery(q)) > 0) rtn = true;
+        } catch (err) {
+            throw err;
+        }
     }
 
     /**
@@ -127,6 +171,7 @@ class VoteManager {
 
         return rtn;
     }
+
     /**
      * @async
      * @function findVoteByIdx
@@ -223,6 +268,28 @@ class VoteManager {
     }
 
     /**
+     * @async
+     * @function setVoteTotalCount
+     * @description Set vote total count
+     *
+     * @param {type.VoteObject} voteObj Vote object
+     * @returns {boolean}
+     */
+    async updateVote(voteObj) {
+        let rtn = false;
+
+        try {
+            const q = db.getModel(modelName.vote).makeQuery(type.QueryMethods.update);
+            q.data = { category: voteObj.category, name: voteObj.name, startTime: voteObj.startTime, endTime: voteObj.endTime, status: voteObj.status };
+            q.conditions.where = { idx: voteObj.idx };
+
+            if ((await db.execQuery(q)) > 0) rtn = true;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
      * -----------------------------------------------------------------------------
      * ------------------------------ [ VoteRecord ] -------------------------------
      * -----------------------------------------------------------------------------
@@ -304,6 +371,43 @@ class VoteManager {
             throw err;
         }
 
+        return rtn;
+    }
+
+    /**
+     * -----------------------------------------------------------------------------
+     * ------------------------------ [ Common ] -------------------------------
+     * -----------------------------------------------------------------------------
+     */
+
+    /**
+     * @function validReserveTime
+     * @description Valid reserve time
+     *
+     * @param {Number} startTime
+     * @param {Number} endTime
+     * @returns {boolean}
+     */
+    validReserveTime(startTime, endTime) {
+        let rtn = false;
+        if (Date.now() < utility.convertToTimestamp(startTime, true) && Date.now() < utility.convertToTimestamp(endTime, true)) {
+            rtn = true;
+        }
+        return rtn;
+    }
+
+    /**
+     * @function validEndTime
+     * @description Valid end time
+     *
+     * @param {Number} endTime
+     * @returns {boolean}
+     */
+    validEndTime(endTime) {
+        let rtn = false;
+        if (Date.now() < utility.convertToTimestamp(endTime, true)) {
+            rtn = true;
+        }
         return rtn;
     }
 }
