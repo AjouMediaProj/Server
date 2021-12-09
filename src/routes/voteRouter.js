@@ -23,7 +23,7 @@ router.post('/addVote', authMiddleware.isSignedIn, voteMiddleware.addVote);
 router.post('/addCandidate', authMiddleware.isSignedIn, voteMiddleware.addCandidate);
 router.post('/vote', authMiddleware.isSignedIn, voteMiddleware.vote);
 router.post('/getVoteOverview', authMiddleware.isSignedIn, voteMiddleware.getVoteOverview);
-router.post('/decodeVoteReceipt', authMiddleware.isSignedIn, voteMiddleware.decodeVoteReceipt);
+router.post('/decodeVoteReceipt', voteMiddleware.decodeVoteReceipt);
 
 /* Export the router as module */
 module.exports = router;
