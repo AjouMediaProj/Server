@@ -322,7 +322,7 @@ class VoteManager {
      *
      * @param {number} voteIdx Vote index
      * @param {number} userIdx User index
-     * @returns {baseVoteRecordObject}
+     * @returns {type.VoteRecordObject}
      */
     async findVoteRecord(voteIdx, userIdx) {
         let rtn = null;
@@ -336,6 +336,28 @@ class VoteManager {
                         { userIdx: { [db.Op.eq]: userIdx } }
                     ],
             };
+
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
+     * @function findAllVoteRecord
+     * @description Select all vote record from database.
+     *
+     * @param {number} userIdx User index
+     * @returns {Array<type.VoteRecordObject>}
+     */
+    async findAllVoteRecord(userIdx) {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.voteRecord).makeQuery(type.QueryMethods.findAll);
+            q.conditions.where = { userIdx };
 
             rtn = await db.execQuery(q);
         } catch (err) {

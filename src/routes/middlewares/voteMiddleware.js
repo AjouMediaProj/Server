@@ -404,6 +404,52 @@ class VoteMiddleware {
 
     /**
      * @async
+     * @function getMyVoteInProgress
+     * @description
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
+    async getMyVoteInProgress(req, res) {
+        const reqKeys = {};
+        const resKeys = {
+            list: 'list',
+        };
+
+        try {
+            const resData = {};
+
+            const userIdx = req.user.idx;
+
+            const myVotes = await voteMgr.findAllVoteRecord(userIdx);
+            const myVoteIdxes = myVotes.filter((x) => x.status == type.VoteRecordStatus.verified).map((x) => x.voteIdx);
+            const validVotes = await voteMgr.findValidVotes();
+            const myValidVotes = validVotes.filter((x) => myVoteIdxes.includes(x.idx));
+
+            let list = [];
+            for (let i in myValidVotes) {
+                let item = {};
+
+                item.idx = myValidVotes[i].idx;
+                item.voteName = myValidVotes[i].name;
+                item.candidates = await voteMgr.findCandidatesFromVote(myValidVotes[i].idx);
+                item.totalVoteCnt = myValidVotes[i].totalCount;
+                item.startTime = myValidVotes[i].startTime;
+                item.endTime = myValidVotes[i].endTime;
+                item.status = myValidVotes[i].status;
+
+                list.push(item);
+            }
+
+            resData[resKeys.list] = list;
+            utility.routerSend(res, type.HttpStatus.OK, resData);
+        } catch (err) {
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+        }
+    }
+
+    /**
+     * @async
      * @function decodeVoteReceipt
      * @description
      *
