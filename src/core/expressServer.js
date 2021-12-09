@@ -1,6 +1,6 @@
 /**
- * server.js
- * Last modified: 2021.11.18
+ * expressServer.js
+ * Last modified: 2021.12.10
  * Author: Lee Hong Jun (arcane22, hong3883@naver.com)
  * Description: Web server based on express module
  */
@@ -25,10 +25,11 @@ const path = require('path');
 const logger = require('@src/utils/logger');
 
 /* Routers */
+const entryRouter = require('@src/routes/entryRouter');
 const authRouter = require('@src/routes/authRouter');
 const voteRouter = require('@src/routes/voteRouter');
 const uploadRouter = require('@src/routes/uploadRouter');
-const errorRouter = require('@src/routes/errorRouter');
+const errorRouter = require('@root/src/routes/errorRouter');
 
 /* Variables */
 const expressPort = process.env.EXPRESS_PORT;
@@ -116,6 +117,7 @@ class ExpressServer {
         this.app.use(passport.session());
 
         // routers
+        this.app.use('/', entryRouter);
         this.app.use('/auth', authRouter);
         this.app.use('/vote', voteRouter);
         this.app.use('/upload', uploadRouter);
