@@ -92,19 +92,23 @@ class AuthMiddleware {
         const authCode = req.body.authCode;
 
         try {
-            // Check the account already exist.
+            // Check whether the email is duplicated or not.
             if (await authManager.findAccountByEmail(accObj.email)) {
-                return res.sendStatus(type.HttpStatus.Conflict);
+                return utility.routerSend(res, type.HttpStatus.Conflict, { err: 'DuplicatedEmail' });
+            }
+            // Check whether the studentID is duplicated or not.
+            else if (await authManager.findUserByStudentID(userObj.studentID)) {
+                return utility.routerSend(res, type.HttpStatus.Conflict, { err: 'DuplicatedStudentID' });
             }
 
-            // Check email authentication
+            // Check whether the auth mail is valid or not.
             if (!(await authManager.isValidAuthCode(accObj.email, authCode))) {
                 return res.sendStatus(type.HttpStatus.BadRequest);
             }
 
             // Register new account & user information
             if (await authManager.registerUserInfo(accObj, userObj)) {
-                return res.sendStatus(type.HttpStatus.OK);
+                return res.sendStatus(type.HttpStatus.Created);
             } else {
                 return res.sendStatus(type.HttpStatus.InternalServerError);
             }
@@ -120,11 +124,17 @@ class AuthMiddleware {
      *
      * @param {Request} req Express Request object (from client)
      * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function
      */
-    signOut(req, res) {
-        req.logout();
-        req.session.destroy();
-        utility.routerSend(res, type.HttpStatus.OK);
+    signOut(req, res, next) {
+        try {
+            req.logout();
+            req.session.destroy();
+            utility.routerSend(res, type.HttpStatus.OK);
+        } catch (err) {
+            logger.error(err);
+            return next(err);
+        }
     }
 
     /**
@@ -145,8 +155,9 @@ class AuthMiddleware {
      * 
      * @param {Request} req Express Request object (from client)
      * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function
      */
-    async findEmail(req, res) {
+    async findEmail(req, res, next) {
         const name = req.body.name;
         const studentID = req.body.studentID;
 
@@ -159,7 +170,8 @@ class AuthMiddleware {
                 utility.routerSend(res, type.HttpStatus.NotFound);
             }
         } catch (err) {
-            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+            logger.error(err);
+            return next(err);
         }
     }
 
@@ -188,8 +200,9 @@ class AuthMiddleware {
      * 
      * @param {Request} req Express Request object (from client)
      * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function
      */
-    async updatePassword(req, res) {
+    async updatePassword(req, res, next) {
         const password = req.body.password;
 
         if (!password) return utility.routerSend(res, type.HttpStatus.BadRequest);
@@ -199,7 +212,7 @@ class AuthMiddleware {
             else utility.routerSend(res, type.HttpStatus.NotFound);
         } catch (err) {
             logger.error(err);
-            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+            return next(err);
         }
     }
 
@@ -210,8 +223,9 @@ class AuthMiddleware {
      *
      * @param {Request} req Express Request object (from client)
      * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function
      */
-    async deleteAccount(req, res) {
+    async deleteAccount(req, res, next) {
         const idx = req.user.idx;
         if (!idx) return utility.routerSend(res, type.HttpStatus.Unauthorized);
 
@@ -220,7 +234,7 @@ class AuthMiddleware {
             utility.routerSend(res, type.HttpStatus.NoContent);
         } catch (err) {
             logger.error(err);
-            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+            return next(err);
         }
     }
 
@@ -235,6 +249,7 @@ class AuthMiddleware {
 
      * @param {Request} req Express Request object (from client)
      * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function
      */
     async sendAuthMail(req, res) {
         // Get email from req.body
@@ -246,7 +261,7 @@ class AuthMiddleware {
             utility.routerSend(res, await mailer.sendAuthMail(email));
         } catch (err) {
             logger.error(err);
-            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+            return next(err);
         }
     }
 

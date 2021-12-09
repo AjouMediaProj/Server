@@ -11,6 +11,13 @@ const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
 const encryption = require('@src/utils/encryption');
 
+/* Variables */
+const modelName = {
+    account: 'Account',
+    user: 'User',
+    authMail: 'AuthMail',
+};
+
 /**
  * @class AuthManager
  * @description
@@ -34,8 +41,8 @@ class AuthManager {
         const arr = [];
         accObj.salt = await encryption.createSalt(16);
         accObj.password = await encryption.createHash(accObj.password, accObj.salt);
-        arr.push(db.getModel('Account').makeQuery(type.QueryMethods.create, accObj));
-        arr.push(db.getModel('User').makeQuery(type.QueryMethods.create, userObj));
+        arr.push(db.getModel(modelName.account).makeQuery(type.QueryMethods.create, accObj));
+        arr.push(db.getModel(modelName.user).makeQuery(type.QueryMethods.create, userObj));
 
         try {
             await db.execTransaction(arr);
@@ -63,7 +70,7 @@ class AuthManager {
      */
     async findAccountByIdx(idx) {
         let result = false;
-        const q = db.getModel('Account').makeQuery(type.QueryMethods.findOne, null, { where: { idx } });
+        const q = db.getModel(modelName.account).makeQuery(type.QueryMethods.findOne, null, { where: { idx } });
 
         try {
             result = await db.execQuery(q);
@@ -83,7 +90,7 @@ class AuthManager {
      */
     async findAccountByEmail(email) {
         let result = false;
-        const q = db.getModel('Account').makeQuery(type.QueryMethods.findOne, null, { where: { email } });
+        const q = db.getModel(modelName.account).makeQuery(type.QueryMethods.findOne, null, { where: { email } });
 
         try {
             result = await db.execQuery(q);
@@ -103,13 +110,13 @@ class AuthManager {
      * @returns {string} User's account email
      */
     async findEmailByUser(name, studentID) {
-        let q = null,
-            idx = null,
-            result = null;
+        let q = null;
+        let idx = null;
+        let result = null;
 
         try {
             // Get idx from users table
-            q = db.getModel('User').makeQuery(type.QueryMethods.findOne, null, {
+            q = db.getModel(modelName.user).makeQuery(type.QueryMethods.findOne, null, {
                 where: {
                     [db.Op.and]: [{ name }, { studentID }],
                 },
@@ -118,12 +125,35 @@ class AuthManager {
             idx = await db.execQuery(q);
 
             if (idx) {
-                q.model = 'Account';
+                q.model = modelName.account;
                 q.conditions.where = idx;
                 q.conditions.attributes = ['email'];
 
                 result = await db.execQuery(q);
             }
+        } catch (err) {
+            throw err;
+        }
+
+        return result;
+    }
+
+    /**
+     * @async
+     * @function findUserByStudentID
+     * @description
+     *
+     * @param {number} studentID
+     * @returns
+     */
+    async findUserByStudentID(studentID) {
+        let result = null;
+
+        try {
+            const q = db.getModel(modelName.user).makeQuery(type.QueryMethods.findOne);
+            q.where = { studentID };
+
+            result = await db.execQuery(q);
         } catch (err) {
             throw err;
         }
@@ -144,7 +174,7 @@ class AuthManager {
         let result = false;
 
         try {
-            const q = db.getModel('AuthMail').makeQuery(type.QueryMethods.findOne, null, { where: { email } });
+            const q = db.getModel(modelName.authMail).makeQuery(type.QueryMethods.findOne, null, { where: { email } });
             const queryResult = await db.execQuery(q);
 
             if (queryResult) {
@@ -188,7 +218,7 @@ class AuthManager {
             const salt = await encryption.createSalt(16);
             const password = await encryption.createHash(pw, salt);
 
-            const q = db.getModel('Account').makeQuery(type.QueryMethods.update, { salt, password }, { where: { idx } });
+            const q = db.getModel(modelName.account).makeQuery(type.QueryMethods.update, { salt, password }, { where: { idx } });
             result = (await db.execQuery(q)) > 0;
         } catch (err) {
             throw err;
@@ -214,8 +244,8 @@ class AuthManager {
         try {
             const arr = [];
             const condition = { where: { idx } };
-            arr.push(db.getModel('Account').makeQuery(type.QueryMethods.delete, null, condition));
-            arr.push(db.getModel('User').makeQuery(type.QueryMethods.delete, null, condition));
+            arr.push(db.getModel(modelName.account).makeQuery(type.QueryMethods.delete, null, condition));
+            arr.push(db.getModel(modelName.user).makeQuery(type.QueryMethods.delete, null, condition));
             await db.execTransaction(arr);
         } catch (err) {
             throw err;
@@ -238,7 +268,7 @@ class AuthManager {
      */
     async localStrategyCallback(email, password, done) {
         try {
-            const q = db.getModel('Account').makeQuery(type.QueryMethods.findOne, null, { where: { email } });
+            const q = db.getModel(modelName.account).makeQuery(type.QueryMethods.findOne, null, { where: { email } });
             const account = await db.execQuery(q);
 
             // Check whether the account exist in the database or not.
@@ -273,7 +303,7 @@ class AuthManager {
      */
     async kakaoStrategyCallback(accessToken, refreshToken, profile, done) {
         try {
-            const q = db.getModel('Account').makeQuery(type.QueryMethods.findOne, null, { where: { email } });
+            const q = db.getModel(modelName.account).makeQuery(type.QueryMethods.findOne, null, { where: { email } });
             const account = await db.execQuery(q);
 
             if (!account) {
@@ -290,8 +320,8 @@ class AuthManager {
                 newUser.name = profile.displayName;
 
                 // Make new queries
-                arr.push(db.getModel('Account').makeQuery(type.QueryMethods.create, newAccount));
-                arr.push(db.getModel('User').makeQuery(type.QueryMethods.create, newUser));
+                arr.push(db.getModel(modelName.account).makeQuery(type.QueryMethods.create, newAccount));
+                arr.push(db.getModel(modelName.user).makeQuery(type.QueryMethods.create, newUser));
 
                 // Execute transaction
                 await db.execTransaction(arr);
