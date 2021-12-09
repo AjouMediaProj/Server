@@ -245,7 +245,7 @@ class Utility {
      * @returns {boolean} If obj is valid JSON object, return true. Else, return false.
      */
     convertToTimestamp(timestring, milisec = false) {
-        return milisec ? new Date(timestring).getTime() : new Date(timestring).getTime() * 0.001;
+        return milisec ? new Date(timestring).getTime() : Math.floor(new Date(timestring).getTime() * 0.001);
     }
 }
 
