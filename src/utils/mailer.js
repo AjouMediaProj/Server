@@ -13,8 +13,6 @@ const nodeMailer = require('nodemailer');
 
 /* Custom modules */
 const db = require('@src/database/database2');
-const type = require('@src/utils/type');
-const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
 
 /* config */
@@ -52,7 +50,7 @@ class Mailer {
         };
 
         try {
-            const info = await this.transporter.sendMail(mailOps);
+            await this.transporter.sendMail(mailOps);
             this.transporter.close();
         } catch (err) {
             throw err;
@@ -69,35 +67,35 @@ class Mailer {
      * @returns {number} Result of sending auth mail (http status code)
      */
     async sendAuthMail(email) {
-        let result = 0;
+        let t = null;
+        let result = false;
+        let queryResult = null;
 
         try {
-            // make auth mail object
-            const authMailObj = type.cloneAccountObject();
-            authMailObj.email = email;
-            authMailObj.authCode = utility.createRandomCode(6);
-            authMailObj.expirationDate = moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss');
+            const authCode = utility.createRandomCode(6);
+            const expirationDate = moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss');
+            const model = await db.getModel('AuthMail');
+            const condition = { where: { email } };
 
             // create or update auth mail
-            const q = db.getModel('AuthMail').makeQuery(type.QueryMethods.findOne, authMailObj, { where: { email } });
-
-            if (await db.execQuery(q)) {
-                // alreay exist: update
-                q.method = type.QueryMethods.update;
+            t = await db.sequelize.transaction();
+            if (await model.findOne(condition, t)) {
+                // Auth email alreay exist -> update
+                queryResult = await model.update({ authCode, expirationDate }, condition, t);
             } else {
-                // doesn't exist: create
-                q.method = type.QueryMethods.create;
+                // Auth email doesn't exist -> create
+                queryResult = await model.create({ email, authCode, expirationDate }, t);
             }
+            await t.commit();
 
             // send auth mail to client
-            if (await db.execQuery(q)) {
-                const mail = await ejs.renderFile(path.join(__dirname, '/authMail.ejs'), authMailObj);
+            if (queryResult) {
+                const mail = await ejs.renderFile(path.join(__dirname, '/authMail.ejs'), { email, authCode, expirationDate });
                 await this.sendMail(email, 'Blote authentication code', mail);
-                result = type.HttpStatus.OK;
-            } else {
-                result = type.HttpStatus.BadRequest;
+                result = true;
             }
         } catch (err) {
+            await t.rollback();
             throw err;
         }
 
@@ -105,14 +103,14 @@ class Mailer {
     }
 
     /**
-     * @async @function sendAuthMail_test
+     * @async @function sendAuthMail_Base
      * @description Send authentication e-mail to destination. (test version)
      *
      * @param {string} email Destination for sending authentication e-mail. (ex. user's e-mail address)
      * @throws {error}
      * @returns {boolean} Result of mailer.
      */
-    async sendAuthMail_test(email) {
+    async sendAuthMail_Base(email) {
         let result = false;
 
         try {

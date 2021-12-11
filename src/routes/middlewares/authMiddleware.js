@@ -56,7 +56,7 @@ class AuthMiddleware {
             }
             // cannot find the user
             else if (!user) {
-                return utility.routerSend(res, type.HttpStatus.NotFound, 'Wrong ID or PW', true);
+                return utility.routerSend(res, type.HttpStatus.NotFound, 'WrongInformation', true);
             }
             // try to make sign in
             else {
@@ -93,13 +93,9 @@ class AuthMiddleware {
 
         try {
             // Check whether the email is duplicated or not.
-            if (await authManager.findAccountByEmail(accObj.email)) {
-                return utility.routerSend(res, type.HttpStatus.Conflict, 'DuplicatedEmail', true);
-            }
+            if (await authManager.findAccountByEmail(accObj.email)) return utility.routerSend(res, type.HttpStatus.Conflict, 'DuplicatedEmail', true);
             // Check whether the studentID is duplicated or not.
-            else if (await authManager.findUserByStudentID(userObj.studentID)) {
-                return utility.routerSend(res, type.HttpStatus.Conflict, 'DuplicatedStudentID', true);
-            }
+            else if (await authManager.findUserByStudentID(userObj.studentID)) return utility.routerSend(res, type.HttpStatus.Conflict, 'DuplicatedStudentID', true);
 
             // Check whether the auth mail is valid or not.
             if (!(await authManager.isValidAuthCode(accObj.email, authCode))) {
@@ -107,11 +103,8 @@ class AuthMiddleware {
             }
 
             // Register new account & user information
-            if (await authManager.registerUserInfo(accObj, userObj)) {
-                return res.sendStatus(type.HttpStatus.Created);
-            } else {
-                return res.sendStatus(type.HttpStatus.InternalServerError);
-            }
+            if (await authManager.registerUserInfo(accObj, userObj)) return res.sendStatus(type.HttpStatus.Created);
+            else throw new Error('FailToRegisterUserError');
         } catch (err) {
             logger.error(err);
             return next(err);
@@ -130,7 +123,7 @@ class AuthMiddleware {
         try {
             req.logout();
             req.session.destroy();
-            utility.routerSend(res, type.HttpStatus.OK);
+            utility.routerSend(res);
         } catch (err) {
             logger.error(err);
             return next(err);
@@ -205,10 +198,10 @@ class AuthMiddleware {
     async updatePassword(req, res, next) {
         const password = req.body.password;
 
-        if (!password) return utility.routerSend(res, type.HttpStatus.BadRequest);
+        if (!password) return utility.routerSend(res, type.HttpStatus.BadRequest, 'BadRequest', true);
 
         try {
-            if (await authManager.resetPassword(req.user.idx, password)) utility.routerSend(res, type.HttpStatus.OK);
+            if (await authManager.resetPassword(req.user.idx, password)) utility.routerSend(res);
             else utility.routerSend(res, type.HttpStatus.NotFound);
         } catch (err) {
             logger.error(err);
@@ -254,11 +247,12 @@ class AuthMiddleware {
     async sendAuthMail(req, res, next) {
         // Get email from req.body
         const email = req.body.email;
-        if (!email) return utility.routerSend(res, type.HttpStatus.BadRequest);
+        if (!email) return utility.routerSend(res, type.HttpStatus.BadRequest, 'BadRequest', true);
 
         try {
             // send auth mail
-            utility.routerSend(res, await mailer.sendAuthMail(email));
+            if (await mailer.sendAuthMail(email)) utility.routerSend(res, type.HttpStatus.OK);
+            else throw Error('FailToSendAuthMail');
         } catch (err) {
             logger.error(err);
             return next(err);
