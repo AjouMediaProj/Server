@@ -10,10 +10,6 @@ require('dotenv').config();
 const passport = require('passport');
 const strategy = require('@src/passport/strategy');
 
-const type = require('@src/utils/type');
-const logger = require('@src/utils/logger');
-const authManager = require('@src/database/managers/authManager');
-
 /**
  * @class PassportConfig
  * @description
@@ -29,19 +25,13 @@ class PassportConfig {
     init() {
         // Run only when user sign in the web service. (save user information object as ID in session)
         // If you save all user information in session, the capacity of the session increases, so save only id.
-        passport.serializeUser((user, done) => {
-            done(null, user.email);
+        passport.serializeUser(async (user, done) => {
+            done(null, user);
         });
 
         // Execute per every request. passport.session calls this method. (recall the user information object through the ID saved in the session)
-        passport.deserializeUser(async (email, done) => {
-            try {
-                const user = await authManager.findAccountByEmail(email);
-                done(null, user);
-            } catch (err) {
-                logger.error(err);
-                done(err);
-            }
+        passport.deserializeUser((user, done) => {
+            done(null, user);
         });
 
         // Create & use local strategy

@@ -79,7 +79,6 @@ class ExpressServer {
 
         // default middlewares
         this.app.use(cors({ origin: true, credentials: true })); // Cross-Origin-Resource-Sharing (CORS)
-        this.app.use('/', express.static(path.resolve('public')));
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: false }));
         this.app.use(cookieParser(process.env.COOKIE_SECRET));

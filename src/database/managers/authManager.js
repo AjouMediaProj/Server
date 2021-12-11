@@ -317,7 +317,19 @@ class AuthManager {
             }
             // success to authenticate the account.
             else {
-                done(null, account);
+                const u = await db.getModel(modelName.user).findOne({ where: { idx: account.idx } });
+                if (u) {
+                    const user = {};
+                    user.idx = account.idx;
+                    user.email = account.email;
+                    user.name = u.name;
+                    user.studentID = u.studentID;
+                    user.major = u.major;
+                    user.accessLevel = u.accessLevel;
+                    done(null, user);
+                } else {
+                    done(null, false, { message: `Fail to load the user information` });
+                }
             }
 
             // Check wheter the password is valid or not.
