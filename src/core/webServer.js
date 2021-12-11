@@ -15,9 +15,7 @@ const http2Express = require('http2-express-bridge');
 
 /* Custom modules */
 const ExpressServer = require('@src/core/expressServer');
-const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
-const utility = require('@src/utils/utility');
 
 /* Variables */
 const httpPort = process.env.HTTP_PORT;

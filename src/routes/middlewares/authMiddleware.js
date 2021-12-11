@@ -280,6 +280,7 @@ class AuthMiddleware {
             if (await mailer.sendAuthMail(email)) utility.routerSend(res, type.HttpStatus.OK);
             else throw Error('FailToSendAuthMail');
         } catch (err) {
+            logger.error('Send Amail middleware error');
             logger.error(err);
             return next(err);
         }
