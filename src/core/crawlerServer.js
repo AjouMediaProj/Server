@@ -28,6 +28,7 @@ class CrawlerServer {
      * @description Execute the update method per execTime
      */
     async run() {
+        await this.update();
         setInterval(async () => {
             try {
                 await this.update();
