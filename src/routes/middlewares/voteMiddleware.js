@@ -431,6 +431,7 @@ class VoteMiddleware {
                 let item = {};
 
                 item.idx = myValidVotes[i].idx;
+                item.category = myValidVotes[i].category;
                 item.voteName = myValidVotes[i].name;
                 item.candidates = await voteMgr.findCandidatesFromVote(myValidVotes[i].idx);
                 item.totalVoteCnt = myValidVotes[i].totalCount;
