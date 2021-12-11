@@ -9,11 +9,13 @@
 require('dotenv').config();
 const { Request, Response, NextFunction } = require('express');
 const passport = require('passport');
+const uniqid = require('uniqid');
 
 const type = require('@src/utils/type');
 const mailer = require('@src/utils/mailer');
 const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
+const encryption = require('@src/utils/encryption');
 const authManager = require('@src/database/managers/authManager');
 
 /**
@@ -171,15 +173,39 @@ class AuthMiddleware {
     /**
      * @async
      * @function resetPassword
-     * @description Reset account password
+     * @description Reset account password (without sign in)
      *
      * @param {Request} req Express Request object (from client)
      * @param {Response} res Express Response object (to client)
+     * @param {NextFunction} next Next function
      */
-    async resetPassword(req, res) {
+    async resetPassword(req, res, next) {
         const email = req.body.email;
 
-        // todo
+        try {
+            if (!email) return utility.routerSend(res, type.HttpStatus.BadRequest, 'BadRequest', true);
+
+            const account = await authManager.findAccountByEmail(email);
+            if (account) {
+                const tempPW = await encryption.createSalt();
+
+                // success to send & update temporary password
+                if (await authManager.resetPasswordByIdx(account.idx, tempPW)) {
+                    await mailer.sendResetPwMail(email, tempPW);
+                    utility.routerSend(res);
+                }
+                // fail to send temporary password
+                else {
+                    utility.routerSend(res, type.HttpStatus.BadRequest, 'BadRequest', true);
+                }
+            } else {
+                // Cannot find email in database
+                utility.routerSend(res, type.HttpStatus.NotFound, 'NotFound', true);
+            }
+        } catch (err) {
+            logger.error(err);
+            return next(err);
+        }
     }
 
     /**

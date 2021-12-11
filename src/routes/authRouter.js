@@ -35,7 +35,7 @@ router.get('/sign-out', authMiddleware.isSignedIn, authMiddleware.signOut);
  */
 
 /* URL: '/auth/send-email' - Send authentication email */
-router.post('/send-mail', authMiddleware.sendAuthMail);
+router.post('/send-auth-mail', authMiddleware.sendAuthMail);
 
 /* URL: '/auth/sign-in' - sign in request. (passport local) */
 router.post('/sign-in', authMiddleware.isNotSignedIn, authMiddleware.signIn);
@@ -47,8 +47,11 @@ router.post('/sign-up', authMiddleware.isNotSignedIn, authMiddleware.signUp);
  * -------------------- [PATCH] --------------------
  */
 
-/* URL: '/auth/reset-password' - Reset account password */
+/* URL: '/auth/update-password' - Update account password */
 router.patch('/update-password', authMiddleware.isSignedIn, authMiddleware.updatePassword);
+
+/* URL: '/auth/reset-password' - Reset the account password to temporary password. */
+router.patch('/reset-password', authMiddleware.isNotSignedIn, authMiddleware.resetPassword);
 
 /**
  * -------------------- [DELETE] --------------------
