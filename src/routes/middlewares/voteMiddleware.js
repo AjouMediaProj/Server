@@ -451,6 +451,59 @@ class VoteMiddleware {
 
     /**
      * @async
+     * @function getPastVoteResult
+     * @description
+     *
+     * @param {Request} req Express request object (from client)
+     * @param {Response} res Express response object (to client)
+     */
+    async getPastVoteResult(req, res) {
+        const reqKeys = {
+            page: 'page',
+            name: 'name',
+            year: 'year',
+        };
+        const resKeys = {
+            list: 'list',
+            totalCount: 'totalCount',
+        };
+
+        try {
+            const resData = {};
+            const body = req.body;
+            const page = body[reqKeys.page];
+            const name = body[reqKeys.name];
+            const year = body[reqKeys.year];
+
+            const pastVotes = await voteMgr.findPastVotes(page, name, year);
+            const pastVoteCount = await voteMgr.findPastVoteCount(name, year);
+
+            let list = [];
+            for (let i in pastVotes) {
+                let item = {};
+
+                item.idx = pastVotes[i].idx;
+                item.category = pastVotes[i].category;
+                item.voteName = pastVotes[i].name;
+                item.candidates = await voteMgr.findCandidatesFromVote(pastVotes[i].idx);
+                item.totalVoteCnt = pastVotes[i].totalCount;
+                item.startTime = pastVotes[i].startTime;
+                item.endTime = pastVotes[i].endTime;
+                item.status = pastVotes[i].status;
+
+                list.push(item);
+            }
+
+            resData[resKeys.list] = list;
+            resData[resKeys.totalCount] = pastVoteCount;
+            utility.routerSend(res, type.HttpStatus.OK, resData);
+        } catch (err) {
+            utility.routerSend(res, type.HttpStatus.InternalServerError, err, true);
+        }
+    }
+
+    /**
+     * @async
      * @function decodeVoteReceipt
      * @description
      *

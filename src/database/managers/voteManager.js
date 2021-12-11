@@ -224,6 +224,74 @@ class VoteManager {
 
     /**
      * @async
+     * @function findValidVotes
+     * @description Find all past votes in database
+     *
+     * @param {number} page Current Page
+     * @param {string} name Name of vote to search
+     * @param {number} year Year of vote
+     * @returns {Array<type.VoteObject>} Array of vote objects
+     */
+    async findPastVotes(page, name = '', year = 0) {
+        let rtn = null;
+
+        const voteNumberPerPage = 10;
+
+        let query = 'SELECT * FROM votes WHERE ';
+        if (name != '') {
+            query += `name LIKE '%${name}%' AND `;
+        }
+        if (year != 0) {
+            const timeArr = this.getTimestampFromYear(year);
+            query += `endTime BETWEEN FROM_UNIXTIME(${timeArr[0]}) AND FROM_UNIXTIME(${timeArr[1]}) AND `;
+        }
+        query += `endTime < FROM_UNIXTIME(${Math.floor(Date.now() / 1000)}) AND status = ${type.VoteStatus.default} `;
+        query += `ORDER BY idx DESC LIMIT ${voteNumberPerPage} OFFSET ${(page - 1) * voteNumberPerPage};`;
+
+        try {
+            rtn = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT, raw: true });
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
+     * @async
+     * @function findValidVotes
+     * @description Find count of past votes in database
+     *
+     * @param {number} page Current Page
+     * @param {string} name Name of vote to search
+     * @param {number} year Year of vote
+     * @returns {number} Count of past votes
+     */
+    async findPastVoteCount(name = '', year = 0) {
+        let rtn = 0;
+
+        let query = 'SELECT Count(1) AS cnt FROM votes WHERE ';
+        if (name != '') {
+            query += `name LIKE '%${name}%' AND `;
+        }
+        if (year != 0) {
+            const timeArr = this.getTimestampFromYear(year);
+            query += `endTime BETWEEN FROM_UNIXTIME(${timeArr[0]}) AND FROM_UNIXTIME(${timeArr[1]}) AND `;
+        }
+        query += `endTime < FROM_UNIXTIME(${Math.floor(Date.now() / 1000)}) AND status = ${type.VoteStatus.default} `;
+        query += `ORDER BY idx DESC;`;
+
+        try {
+            rtn = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT, raw: true });
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn[0].cnt;
+    }
+
+    /**
+     * @async
      * @function setVoteTotalCount
      * @description Set vote total count
      *
@@ -431,6 +499,19 @@ class VoteManager {
             rtn = true;
         }
         return rtn;
+    }
+
+    /**
+     * @function getTimestampFromYear
+     * @description Get timestamp from year
+     *
+     * @param {Number} year
+     * @returns {Array<Number>}
+     */
+    getTimestampFromYear(year) {
+        let startTime = new Date(year, 0, 1);
+        let endTime = new Date(year, 11, 31);
+        return [Math.floor(startTime.getTime() / 1000), Math.floor(endTime.getTime() / 1000)];
     }
 }
 

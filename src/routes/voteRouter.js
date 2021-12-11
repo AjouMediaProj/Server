@@ -26,6 +26,7 @@ router.post('/update-candidate', authMiddleware.isSignedIn, voteMiddleware.updat
 router.post('/vote', authMiddleware.isSignedIn, voteMiddleware.vote);
 router.post('/get-vote-overview', authMiddleware.isSignedIn, voteMiddleware.getVoteOverview);
 router.post('/get-my-vote-in-progress', authMiddleware.isSignedIn, voteMiddleware.getMyVoteInProgress);
+router.post('/get-past-vote-result', authMiddleware.isSignedIn, voteMiddleware.getPastVoteResult);
 router.post('/decode-vote-receipt', voteMiddleware.decodeVoteReceipt);
 
 /* Export the router as module */
