@@ -9,11 +9,14 @@
 const ejs = require('ejs');
 const path = require('path');
 const moment = require('moment');
+const uniqid = require('uniqid');
 const nodeMailer = require('nodemailer');
 
 /* Custom modules */
 const db = require('@src/database/database2');
+const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
+const encryption = require('@src/utils/encryption');
 
 /* config */
 const config = require('@root/config/config');
@@ -59,6 +62,28 @@ class Mailer {
 
     /**
      * @async
+     * @function sendResetPwMail
+     * @description Send reset password e-mail to destination.
+     *
+     * @param {string} email Destination for sending authentication e-mail. (ex. user's e-mail address)
+     * @param {string} tempPW Temporary password
+     * @throws {error}
+     * @returns {string} Temporary password
+     */
+    async sendResetPwMail(email, tempPW) {
+        try {
+            console.log(path.join(__dirname, '/mails', '/resetpwMail.ejs'));
+            const mail = await ejs.renderFile(path.join(__dirname, '/mails', '/resetpwMail.ejs'), { email, tempPW });
+            await this.sendMail(email, 'Blote Service (Temporary Password)', mail);
+
+            return tempPW;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * @async
      * @function sendAuthMail
      * @description Send authentication e-mail to destination.
      *
@@ -90,11 +115,13 @@ class Mailer {
 
             // send auth mail to client
             if (queryResult) {
-                const mail = await ejs.renderFile(path.join(__dirname, '/authMail.ejs'), { email, authCode, expirationDate });
-                await this.sendMail(email, 'Blote authentication code', mail);
+                console.log(path.join(__dirname, '/mails', '/authMail.ejs'));
+                const mail = await ejs.renderFile(path.join(__dirname, '/mails', '/authMail.ejs'), { email, authCode, expirationDate });
+                await this.sendMail(email, 'Blote Service (Authentication Code)', mail);
                 result = true;
             }
         } catch (err) {
+            logger.error(err);
             await t.rollback();
             throw err;
         }

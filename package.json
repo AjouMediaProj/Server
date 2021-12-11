@@ -50,6 +50,7 @@
         "request-promise": "^4.2.6",
         "sequelize": "^6.6.5",
         "sequelize-cli": "^6.2.0",
+        "uniqid": "^5.4.0",
         "util": "^0.12.4",
         "winston": "^3.3.3",
         "winston-daily-rotate-file": "^4.5.5"

@@ -247,7 +247,7 @@ class AuthManager {
      * @throws {error}
      * @returns {boolean} Result of reset password
      */
-    async resetPassword(idx, pw) {
+    async resetPasswordByIdx(idx, pw) {
         let result = false;
 
         try {
