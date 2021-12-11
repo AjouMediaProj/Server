@@ -31,7 +31,7 @@ const logger = require('@src/utils/logger');
 class UploadMiddleware {
     constructor() {
         // init config
-        this.initLocalDir('/uploads');
+        this.initLocalDir('./uploads');
         this.initAWS();
 
         // local uploader (local storage)
