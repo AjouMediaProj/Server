@@ -42,10 +42,7 @@ class AuthMiddleware {
                 }
                 // success to sign in the service
                 else {
-                    const u = await authManager.findUserByIdx(user.idx);
-                    u.idx = user.idx;
-                    u.email = user.email;
-                    return utility.routerSend(res, type.HttpStatus.OK, u);
+                    return utility.routerSend(res, type.HttpStatus.OK, user);
                 }
             });
         };
@@ -254,7 +251,7 @@ class AuthMiddleware {
      * @param {Response} res Express Response object (to client)
      * @param {NextFunction} next Next function
      */
-    async sendAuthMail(req, res) {
+    async sendAuthMail(req, res, next) {
         // Get email from req.body
         const email = req.body.email;
         if (!email) return utility.routerSend(res, type.HttpStatus.BadRequest);
@@ -284,7 +281,7 @@ class AuthMiddleware {
             next();
         } else {
             // Unauthenticated request, send 401 Unauthorized
-            utility.routerSend(res, type.HttpStatus.Unauthorized);
+            utility.routerSend(res, type.HttpStatus.Unauthorized, 'Unauthorized', true);
         }
     }
 
@@ -304,7 +301,7 @@ class AuthMiddleware {
             next();
         } else {
             // Authenticated request, send 400 Bad Request
-            utility.routerSend(res, type.HttpStatus.BadRequest);
+            utility.routerSend(res, type.HttpStatus.BadRequest, 'BadRequest', true);
         }
     }
 }
