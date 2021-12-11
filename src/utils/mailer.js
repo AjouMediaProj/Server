@@ -111,20 +111,18 @@ class Mailer {
                 // Auth email doesn't exist -> create
                 queryResult = await model.create({ email, authCode, expirationDate }, t);
             }
-            await t.commit();
 
             // send auth mail to client
             if (queryResult) {
-                logger.info('queryResult!!!');
                 console.log(path.join(__dirname, '/mails', '/authMail.ejs'));
                 const mail = await ejs.renderFile(path.join(__dirname, '/mails', '/authMail.ejs'), { email, authCode, expirationDate });
                 await this.sendMail(email, 'Blote Service (Authentication Code)', mail);
+                await t.commit();
                 result = true;
             }
         } catch (err) {
-            logger.info('send auth mail error');
             logger.info(err);
-            //await t.rollback();
+            await t.rollback();
             throw err;
         }
 
