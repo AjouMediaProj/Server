@@ -18,6 +18,9 @@ module.exports = {
             database: 'votedb_development',
             host: '127.0.0.1',
             dialect: 'mysql',
+            dialectOptions: {
+                multipleStatements: true,
+            },
         },
         test: {
             username: 'root',
@@ -25,6 +28,9 @@ module.exports = {
             database: 'votedb_test',
             host: '127.0.0.1',
             dialect: 'mysql',
+            dialectOptions: {
+                multipleStatements: true,
+            },
         },
         production: {
             username: 'root',
@@ -32,6 +38,9 @@ module.exports = {
             database: 'votedb',
             host: '127.0.0.1',
             dialect: 'mysql',
+            dialectOptions: {
+                multipleStatements: true,
+            },
             logging: false, // To hide query commands in a production environment.
         },
     },

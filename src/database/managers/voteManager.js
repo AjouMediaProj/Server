@@ -357,6 +357,91 @@ class VoteManager {
         }
     }
 
+    async insertTempVotes() {
+        let rtn = null;
+
+        let category = {
+            0: '총학생회',
+            101: '정보통신대학',
+            10101: '미디어학과',
+            10102: '전자공학과',
+            10103: '소프트웨어학과',
+            10104: '국방디지털융합학과',
+            10105: '사이버보안학과',
+            10106: '인공지능융합학과',
+            102: '공과대학',
+            10201: '기계공학과',
+            10202: '환경안전공학과',
+            10203: '산업공학과',
+            10204: '건설시스템공학과',
+            10205: '화학공학과',
+            10206: '교통시스템공학과',
+            10207: '신소재공학과',
+            10208: '건축학과',
+            10209: '응용화학생명공학과',
+            10210: '융합시스템공학과',
+            103: '자연과학대학',
+            10301: '수학과',
+            10302: '화학과',
+            10303: '물리학과',
+            10304: '생명과학과',
+            104: '경영대학',
+            10401: '경영학과',
+            10402: '금융공학과',
+            10403: 'e-비즈니스학과',
+            10404: '글로벌경영학과',
+            105: '인문대학',
+            10501: '국어국문학과',
+            10502: '사학과',
+            10503: '영어영문학과',
+            10504: '문화콘텐츠학과',
+            10505: '불어불문학과',
+            106: '사회과학대학',
+            10601: '경제학과',
+            10602: '사회학과',
+            10603: '행정학과',
+            10604: '정치외교학과',
+            10605: '심리학과',
+            10606: '스포츠레저학과',
+            107: '의과대학',
+            108: '간호대학',
+            108: '약학대학',
+        };
+        let year = 2020;
+        let nowTimestamp = Math.floor(Date.now() / 1000);
+        const timeArr = this.getTimestampFromYear(year);
+        let startIdx = 1000;
+        let startCandIdx = 1000;
+        let query = '';
+        for (let i in category) {
+            let name = year + '학년도 아주대학교 ' + category[i] + ' 선거';
+            let totalCnt = utility.createRandomNum(10, 250);
+            query += `INSERT INTO votes (idx, category, name, totalCount, startTime, endTime, createdAt, updatedAt) VALUES (${startIdx}, ${Number(i)}, "${name}", ${totalCnt}, FROM_UNIXTIME(${
+                timeArr[0]
+            }), FROM_UNIXTIME(${timeArr[1]}), FROM_UNIXTIME(${nowTimestamp}), FROM_UNIXTIME(${nowTimestamp}));`;
+            let candCnt = utility.createRandomNum(1, 5);
+            for (let j = 1; j <= candCnt; j++) {
+                let candName = category[i] + ' 후보자' + j;
+                let candVoteCnt = totalCnt;
+                if (j != candCnt) {
+                    candVoteCnt = utility.createRandomNum(0, totalCnt);
+                }
+                query += `INSERT INTO candidates (idx, voteIdx, name, count, createdAt, updatedAt) VALUES (${startCandIdx}, ${startIdx}, "${candName}", ${candVoteCnt}, FROM_UNIXTIME(${nowTimestamp}), FROM_UNIXTIME(${nowTimestamp}));`;
+                totalCnt -= candVoteCnt;
+                startCandIdx++;
+            }
+            startIdx++;
+        }
+
+        try {
+            rtn = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.INSERT, raw: true });
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
     /**
      * -----------------------------------------------------------------------------
      * ------------------------------ [ VoteRecord ] -------------------------------
