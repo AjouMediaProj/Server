@@ -521,6 +521,34 @@ class VoteManager {
     }
 
     /**
+     * @function findVerifiedVoteRecord
+     * @description Select verified vote record from database.
+     *
+     * @param {number} userIdx User index
+     * @returns {Array<type.VoteRecordObject>}
+     */
+    async findVerifiedVoteRecord(userIdx) {
+        let rtn = null;
+
+        try {
+            const q = db.getModel(modelName.voteRecord).makeQuery(type.QueryMethods.findAll);
+            q.conditions.where = {
+                // prettier-ignore
+                [db.Op.and]: [
+                        { userIdx: { [db.Op.eq]: userIdx } },
+                        { status: { [db.Op.eq]: type.VoteRecordStatus.verified } }
+                    ],
+            };
+
+            rtn = await db.execQuery(q);
+        } catch (err) {
+            throw err;
+        }
+
+        return rtn;
+    }
+
+    /**
      * @function updateVoteRecordStatus
      * @description Update vote record status.
      *

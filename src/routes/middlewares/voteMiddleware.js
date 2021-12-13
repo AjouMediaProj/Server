@@ -40,11 +40,19 @@ class VoteMiddleware {
         try {
             let rtn = [];
             const resData = {};
+
             const votes = await voteMgr.findValidVotes();
+
+            let myVotes = [];
+            if (req.user != null) {
+                const userIdx = req.user.idx;
+                myVotes = await voteMgr.findVerifiedVoteRecord(userIdx);
+            }
 
             for (let v of votes) {
                 v.startTime = new Date(v.startTime).getTime();
                 v.endTime = new Date(v.endTime).getTime();
+                v.isVoted = myVotes.find((x) => x.voteIdx == v.idx) == null ? false : true;
                 rtn.push(v);
             }
 
@@ -333,10 +341,12 @@ class VoteMiddleware {
             }
 
             // add vote record to database
-            const recordObj = type.cloneVoteRecordObject();
-            recordObj.voteIdx = voteIdx;
-            recordObj.userIdx = userIdx;
-            await voteMgr.registerVoteRecord(recordObj);
+            if (result == null) {
+                const recordObj = type.cloneVoteRecordObject();
+                recordObj.voteIdx = voteIdx;
+                recordObj.userIdx = userIdx;
+                await voteMgr.registerVoteRecord(recordObj);
+            }
 
             // add new user's vote to block chain
             const rtn = await contract.vote(voteIdx, candIdx, renounce);
