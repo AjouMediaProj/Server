@@ -235,7 +235,7 @@ class VoteManager {
     async findPastVotes(page, name = '', year = 0) {
         let rtn = null;
 
-        const voteNumberPerPage = 10;
+        const voteNumberPerPage = 8;
 
         let query = 'SELECT * FROM votes WHERE ';
         if (name != '') {
