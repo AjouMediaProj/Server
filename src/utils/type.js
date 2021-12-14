@@ -84,7 +84,7 @@ const HttpStatus = Object.freeze({
 });
 
 const Category = Object.freeze({
-    0: '총학생회',
+    1: '총학생회',
     101: '정보통신대학',
     10101: '미디어학과',
     10102: '전자공학과',
@@ -132,7 +132,7 @@ const Category = Object.freeze({
 });
 
 const CategoryCount = Object.freeze({
-    0: 9200,
+    1: 9200,
     101: 2800,
     10101: 400,
     10102: 1000,

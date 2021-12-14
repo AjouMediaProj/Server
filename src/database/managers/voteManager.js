@@ -396,6 +396,34 @@ class VoteManager {
     }
 
     /**
+     * @async
+     * @function validCategory
+     * @description Check valid category
+     *
+     * @param {Number} userCategory User category
+     * @param {Number} voteCategory Vote category
+     * @returns {boolean}
+     */
+    validCategory(userCategory, voteCategory) {
+        let rtn = false;
+
+        switch (voteCategory.toString().length) {
+            case 1:
+                userCategory = Math.floor(userCategory / 10000);
+                break;
+
+            case 3:
+                userCategory = Math.floor(userCategory / 100);
+                break;
+        }
+        if (voteCategory == userCategory) {
+            rtn = true;
+        }
+
+        return rtn;
+    }
+
+    /**
      * -----------------------------------------------------------------------------
      * ------------------------------ [ VoteRecord ] -------------------------------
      * -----------------------------------------------------------------------------

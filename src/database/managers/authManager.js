@@ -157,7 +157,7 @@ class AuthManager {
      * @description
      *
      * @param {number} idx
-     * @returns
+     * @returns {type.UserObject}
      */
     async findUserByIdx(idx) {
         let result = null;

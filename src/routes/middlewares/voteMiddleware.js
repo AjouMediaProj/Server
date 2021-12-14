@@ -14,6 +14,7 @@ const utility = require('@src/utils/utility');
 
 /* Manager */
 const voteMgr = require('@src/database/managers/voteManager');
+const authMgr = require('@src/database/managers/authManager');
 const contract = require('@src/blockchain/contract');
 
 /**
@@ -337,7 +338,13 @@ class VoteMiddleware {
             const userIdx = req.user.idx;
             const result = await voteMgr.findVoteRecord(voteIdx, userIdx);
             if (result != null && result.status == type.VoteRecordStatus.verified) {
-                throw new Error('error: user already voted');
+                throw 'UserAlreadyVoted';
+            }
+
+            const voteInfo = await voteMgr.findVoteByIdx(voteIdx);
+            const userInfo = await authMgr.findUserByIdx(userIdx);
+            if (voteMgr.validCategory(userInfo.major, voteInfo.category) == false) {
+                throw 'InvalidVoteCategory';
             }
 
             // add vote record to database
