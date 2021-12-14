@@ -27,9 +27,6 @@ router.get('/kakao/callback', passport.authenticate('kakao', { failureRedirect: 
 /* URL: '/auth/find-email' - Find email request. */
 router.get('/find-email', authMiddleware.isNotSignedIn, authMiddleware.findEmail);
 
-/* URL: '/auth/sign-out' - Sign out from service */
-router.get('/sign-out', authMiddleware.isSignedIn, authMiddleware.signOut);
-
 /**
  * -------------------- [POST] --------------------
  */
@@ -42,6 +39,9 @@ router.post('/sign-in', authMiddleware.isNotSignedIn, authMiddleware.signIn);
 
 /* URL: '/auth/sign-up' - sign up request. (passport local) */
 router.post('/sign-up', authMiddleware.isNotSignedIn, authMiddleware.signUp);
+
+/* URL: '/auth/sign-out' - Sign out from service */
+router.post('/sign-out', authMiddleware.isSignedIn, authMiddleware.signOut);
 
 /**
  * -------------------- [PATCH] --------------------
