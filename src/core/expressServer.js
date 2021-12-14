@@ -90,7 +90,7 @@ class ExpressServer {
                 cookie: {
                     httpOnly: !secure,
                     secure,
-                    maxAge: 1000 * 60 * 60 * 24, // 1day (24 hours)
+                    maxAge: 1000 * 60 * 60, // 1 hour
                 },
                 name: 'session-cookie',
             }),

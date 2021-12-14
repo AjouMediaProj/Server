@@ -35,7 +35,7 @@ class AuthMiddleware {
      */
     signIn(req, res, next) {
         // local sign in callback
-        const makeSignIn = (req, res, next, user) => {
+        const signInCallback = (req, res, next, user) => {
             req.login(user, async (err) => {
                 // occured sign in error
                 if (err) {
@@ -50,7 +50,7 @@ class AuthMiddleware {
         };
 
         // local authentication callback
-        const localAuthenticateCallback = (err, user, info) => {
+        const localAuthCallback = (err, user) => {
             // occured sign in error
             if (err) {
                 logger.error(err);
@@ -62,11 +62,12 @@ class AuthMiddleware {
             }
             // try to make sign in
             else {
-                makeSignIn(req, res, next, user);
+                signInCallback(req, res, next, user);
             }
         };
 
-        passport.authenticate('local', localAuthenticateCallback)(req, res, next);
+        if (req.isAuthenticated()) delete req.session.passport;
+        passport.authenticate('local', localAuthCallback)(req, res, next);
     }
 
     /**

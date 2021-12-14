@@ -35,7 +35,7 @@ router.get('/find-email', authMiddleware.isNotSignedIn, authMiddleware.findEmail
 router.post('/send-auth-mail', authMiddleware.sendAuthMail);
 
 /* URL: '/auth/sign-in' - sign in request. (passport local) */
-router.post('/sign-in', authMiddleware.isNotSignedIn, authMiddleware.signIn);
+router.post('/sign-in', authMiddleware.signIn);
 
 /* URL: '/auth/sign-up' - sign up request. (passport local) */
 router.post('/sign-up', authMiddleware.isNotSignedIn, authMiddleware.signUp);
