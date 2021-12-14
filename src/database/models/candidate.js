@@ -36,45 +36,38 @@ class Candidate extends BaseModel {
             },
             voteIdx: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 defaultValue: 0,
-                unique: false,
             },
             name: {
                 type: Sequelize.STRING,
-                allowNull: true,
+                allowNull: false,
                 defaultValue: '',
-                unique: false,
             },
             photo: {
                 type: Sequelize.STRING,
                 allowNull: true,
                 defaultValue: '',
-                unique: false,
             },
             img: {
                 type: Sequelize.STRING,
                 allowNull: true,
                 defaultValue: '',
-                unique: false,
             },
             txt: {
                 type: Sequelize.STRING,
                 allowNull: true,
                 defaultValue: '',
-                unique: false,
             },
             count: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 defaultValue: 0,
-                unique: false,
             },
             status: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 defaultValue: 0,
-                unique: false,
             },
         };
 

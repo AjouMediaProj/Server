@@ -37,37 +37,31 @@ class Vote extends BaseModel {
             },
             category: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 defaultValue: 0,
-                unique: false,
             },
             name: {
                 type: Sequelize.STRING,
-                allowNull: true,
+                allowNull: false,
                 defaultValue: '',
-                unique: false,
             },
             totalCount: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 defaultValue: 0,
-                unique: false,
             },
             startTime: {
                 type: Sequelize.DATE,
-                allowNull: true,
-                unique: false,
+                allowNull: false,
             },
             endTime: {
                 type: Sequelize.DATE,
-                allowNull: true,
-                unique: false,
+                allowNull: false,
             },
             status: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 defaultValue: 0,
-                unique: false,
             },
         };
 

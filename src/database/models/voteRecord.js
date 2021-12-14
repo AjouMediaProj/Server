@@ -18,7 +18,7 @@ class VoteRecord extends BaseModel {
     static init(sequelize) {
         // modelName (sequelize model name), tableName (mysql table name)
         const mName = this.name;
-        const tName = mName.toLowerCase() + 's';
+        const tName = 'voteRecords';
 
         // Attributes of VoteRecord model
         const attributes = {
@@ -43,8 +43,8 @@ class VoteRecord extends BaseModel {
             sequelize,
             timestamps: true,
             underscored: false,
-            modelName: 'VoteRecord',
-            tableName: 'voteRecords',
+            modelName: mName,
+            tableName: tName,
             paranoid: true,
             charset: 'utf8mb4',
             collate: 'utf8mb4_general_ci',
