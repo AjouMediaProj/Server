@@ -363,8 +363,8 @@ class VoteManager {
         let year = 2020;
         let nowTimestamp = Math.floor(Date.now() / 1000);
         const timeArr = this.getTimestampFromYear(year);
-        let startIdx = 1000;
-        let startCandIdx = 1000;
+        let startIdx = 100;
+        let startCandIdx = 100;
         let query = '';
         for (let i in type.Category) {
             let name = year + '학년도 아주대학교 ' + type.Category[i] + ' 선거';
