@@ -43,7 +43,6 @@ class VoteMiddleware {
             const resData = {};
 
             const votes = await voteMgr.findValidVotes();
-            await voteMgr.insertTempVotes();
 
             let myVotes = [];
             if (req.user != null) {
