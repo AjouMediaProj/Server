@@ -254,8 +254,7 @@ class AuthManager {
             const salt = await encryption.createSalt(16);
             const password = await encryption.createHash(pw, salt);
 
-            const q = db.getModel(modelName.account).update({ salt, password }, { where: { idx } });
-
+            const q = db.getModel(modelName.account).makeQuery(type.QueryMethods.update, { salt, password }, { where: { idx } });
             result = (await db.execQuery(q)) > 0;
         } catch (err) {
             throw err;
