@@ -6,7 +6,7 @@
  */
 
 /* Modules */
-const db = require('@src/database/database2');
+const db = require('@root/src/database/database');
 const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');

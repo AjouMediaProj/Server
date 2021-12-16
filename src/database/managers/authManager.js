@@ -6,7 +6,7 @@
  */
 
 /* Modules */
-const db = require('@src/database/database2');
+const db = require('@root/src/database/database');
 const type = require('@src/utils/type');
 const logger = require('@src/utils/logger');
 const encryption = require('@src/utils/encryption');
@@ -254,7 +254,8 @@ class AuthManager {
             const salt = await encryption.createSalt(16);
             const password = await encryption.createHash(pw, salt);
 
-            const q = db.getModel(modelName.account).makeQuery(type.QueryMethods.update, { salt, password }, { where: { idx } });
+            const q = db.getModel(modelName.account).update({ salt, password }, { where: { idx } });
+
             result = (await db.execQuery(q)) > 0;
         } catch (err) {
             throw err;

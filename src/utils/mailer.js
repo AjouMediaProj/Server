@@ -13,7 +13,7 @@ const uniqid = require('uniqid');
 const nodeMailer = require('nodemailer');
 
 /* Custom modules */
-const db = require('@src/database/database2');
+const db = require('@root/src/database/database');
 const logger = require('@src/utils/logger');
 const utility = require('@src/utils/utility');
 const encryption = require('@src/utils/encryption');

@@ -228,8 +228,8 @@ class AuthMiddleware {
         if (!password) return utility.routerSend(res, type.HttpStatus.BadRequest, 'BadRequest', true);
 
         try {
-            if (await authManager.resetPassword(req.user.idx, password)) utility.routerSend(res);
-            else utility.routerSend(res, type.HttpStatus.NotFound);
+            if (await authManager.resetPasswordByIdx(req.user.idx, password)) utility.routerSend(res);
+            else utility.routerSend(res, type.HttpStatus.BadRequest, 'FailToUpdatePW', true);
         } catch (err) {
             logger.error(err);
             return next(err);

@@ -12,7 +12,7 @@ const ExpressServer = require('@src/core/expressServer');
 const WebServer = require('@src/core/webServer');
 
 const contract = require('@src/blockchain/contract');
-const db = require('@src/database/database2');
+const db = require('@root/src/database/database');
 const logger = require('@src/utils/logger');
 
 /* Variables */
@@ -81,7 +81,7 @@ class WebService {
      * @static @async @function test
      * @description Function to test simple code.
      */
-    static test() {
+    static async test() {
         // todo something (test code)
     }
 }

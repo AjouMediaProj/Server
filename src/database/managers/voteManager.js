@@ -8,7 +8,7 @@
  */
 
 /* Modules */
-const db = require('@src/database/database2');
+const db = require('@root/src/database/database');
 const type = require('@src/utils/type');
 const contract = require('@src/blockchain/contract');
 const utility = require('@root/src/utils/utility');
