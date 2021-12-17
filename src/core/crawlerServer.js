@@ -18,8 +18,7 @@ const logger = require('@src/utils/logger');
 class CrawlerServer {
     constructor() {
         this.runGap = 1000; // 1000 ms (1sec)
-        this.updateVoteGap = 60 * 10; // 10 min
-        this.nextUpdateTime = Date.now() + 1000 * this.updateVoteGap;
+        this.standardTime = 600; //10 min
     }
 
     /**
@@ -43,9 +42,8 @@ class CrawlerServer {
      * @description Execute the task every this.runGap
      */
     async update() {
-        if (Date.now() - this.nextUpdateTime >= 0) {
-            this.nextUpdateTime = Date.now() + 1000 * this.updateVoteGap;
-
+        const nowTimestamp = Math.floor(Date.now() / 1000);
+        if (nowTimestamp % this.standardTime === 0) {
             const votes = await voteMgr.findValidVotes();
             await voteMgr.syncVotes(votes);
         }
