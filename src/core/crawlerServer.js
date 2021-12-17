@@ -18,7 +18,7 @@ const logger = require('@src/utils/logger');
 class CrawlerServer {
     constructor() {
         this.runGap = 1000; // 1000 ms (1sec)
-        this.standardTime = 600; //10 min
+        this.standardTime = 3600; // 1 hour
     }
 
     /**
