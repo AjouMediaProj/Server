@@ -239,7 +239,7 @@ class AuthManager {
      */
     /**
      * @async
-     * @function resetPassword
+     * @function resetPasswordByIdx
      * @description Reset account's salt & password
      *
      * @param {number} idx user index

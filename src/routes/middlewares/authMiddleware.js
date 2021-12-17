@@ -211,7 +211,7 @@ class AuthMiddleware {
 
     /**
      * @async 
-     * @function resetPassword
+     * @function updatePassword
      * @description Update account password 
      * 
      *  req.body = {
