@@ -360,15 +360,15 @@ class VoteManager {
     async insertTempVotes() {
         let rtn = null;
 
-        let year = 2020;
+        let year = 2019;
         let nowTimestamp = Math.floor(Date.now() / 1000);
         const timeArr = this.getTimestampFromYear(year);
-        let startIdx = 1000;
-        let startCandIdx = 1000;
+        let startIdx = 145;
+        let startCandIdx = 238;
         let query = '';
         for (let i in type.Category) {
             let name = year + '학년도 아주대학교 ' + type.Category[i] + ' 선거';
-            let totalCnt = type.CategoryCount[i];
+            let totalCnt = utility.createRandomNum(100, type.CategoryCount[i]);
             query += `INSERT INTO votes (idx, category, name, totalCount, startTime, endTime, createdAt, updatedAt) VALUES (${startIdx}, ${Number(i)}, "${name}", ${totalCnt}, FROM_UNIXTIME(${
                 timeArr[0]
             }), FROM_UNIXTIME(${timeArr[1]}), FROM_UNIXTIME(${nowTimestamp}), FROM_UNIXTIME(${nowTimestamp}));`;
