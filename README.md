@@ -1,6 +1,6 @@
 # Server
 
-Blote 서버
+Blote Service Server  
 투명성, 익명성이 보장된 블록체인 투표 시스템
 
 <br></br>
